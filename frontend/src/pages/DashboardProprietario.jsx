@@ -12,7 +12,7 @@ const DashboardProprietario = () => {
 
   const loadDashboard = async () => {
     try {
-      const response = await api.get('/api/dashboard/proprietario');
+      const response = await api.get('/api/dashboard');
       setStats(response.data);
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
@@ -51,23 +51,23 @@ const DashboardProprietario = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
             <p className="text-blue-100 text-sm mb-1">Total de Imóveis</p>
-            <p className="text-3xl font-bold">{stats?.totalImoveis || 0}</p>
+            <p className="text-3xl font-bold">{stats?.resumo?.totalImoveis || 0}</p>
           </div>
 
           <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
             <p className="text-green-100 text-sm mb-1">Imóveis Alugados</p>
-            <p className="text-3xl font-bold">{stats?.imoveisAlugados || 0}</p>
+            <p className="text-3xl font-bold">{stats?.resumo?.imoveisAlugados || 0}</p>
           </div>
 
           <div className="card bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
             <p className="text-yellow-100 text-sm mb-1">Imóveis Disponíveis</p>
-            <p className="text-3xl font-bold">{stats?.imoveisDisponiveis || 0}</p>
+            <p className="text-3xl font-bold">{stats?.resumo?.imoveisDisponiveis || 0}</p>
           </div>
 
           <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
             <p className="text-purple-100 text-sm mb-1">Receita Mensal</p>
             <p className="text-3xl font-bold">
-              {formatCurrency(stats?.receitaMensal || 0)}
+              {formatCurrency(stats?.resumo?.receitaMensal || 0)}
             </p>
           </div>
         </div>
@@ -78,9 +78,9 @@ const DashboardProprietario = () => {
             <h2 className="text-xl font-bold text-gray-800 mb-4">
               Próximos Vencimentos
             </h2>
-            {stats?.proximosVencimentos && stats.proximosVencimentos.length > 0 ? (
+            {stats?.contratosVencendo && stats.contratosVencendo.length > 0 ? (
               <div className="space-y-3">
-                {stats.proximosVencimentos.map((contrato) => (
+                {stats.contratosVencendo.map((contrato) => (
                   <div
                     key={contrato.id}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
@@ -114,26 +114,26 @@ const DashboardProprietario = () => {
           {/* Contratos Ativos */}
           <div className="card">
             <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Contratos Ativos
+              Últimos Imóveis
             </h2>
-            {stats?.contratosAtivos && stats.contratosAtivos.length > 0 ? (
+            {stats?.ultimosImoveis && stats.ultimosImoveis.length > 0 ? (
               <div className="space-y-3">
-                {stats.contratosAtivos.map((contrato) => (
+                {stats.ultimosImoveis.map((imovel) => (
                   <div
-                    key={contrato.id}
+                    key={imovel.id}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
                   >
                     <div>
                       <p className="font-medium text-gray-800">
-                        {contrato.imovel.endereco}
+                        {imovel.endereco}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {contrato.inquilino.nome}
+                        {imovel.cidade} - {imovel.estado}
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                        Ativo
+                      <span className={`px-2 py-1 ${imovel.status === 'disponivel' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'} text-xs font-medium rounded-full`}>
+                        {imovel.status}
                       </span>
                     </div>
                   </div>
@@ -141,7 +141,7 @@ const DashboardProprietario = () => {
               </div>
             ) : (
               <p className="text-gray-500 text-center py-4">
-                Nenhum contrato ativo
+                Nenhum imóvel cadastrado
               </p>
             )}
           </div>

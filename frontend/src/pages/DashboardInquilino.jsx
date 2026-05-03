@@ -12,7 +12,7 @@ const DashboardInquilino = () => {
 
   const loadDashboard = async () => {
     try {
-      const response = await api.get('/api/dashboard/inquilino');
+      const response = await api.get('/api/dashboard');
       setContrato(response.data);
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
