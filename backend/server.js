@@ -18,23 +18,29 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:3000',
+      'https://alugue-flow.vercel.app',
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
     
     // Permitir requisições sem origin (como mobile apps ou curl)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || !process.env.FRONTEND_URL) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.log('Origin não permitida:', origin);
+      callback(null, true); // Temporariamente permitir todas as origens para debug
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 };
 
 // Middlewares
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Responder a todas as requisições OPTIONS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
