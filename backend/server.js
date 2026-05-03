@@ -12,35 +12,18 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configuração de CORS para produção e desenvolvimento
-const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'https://alugue-flow.vercel.app',
-      process.env.FRONTEND_URL
-    ].filter(Boolean); // Remove undefined values
-    
-    // Permitir requisições sem origin (como mobile apps ou curl)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Origin não permitida:', origin);
-      callback(null, true); // Temporariamente permitir todas as origens para debug
-    }
-  },
+// Configuração de CORS simplificada para debug
+app.use(cors({
+  origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
-};
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200,
+  maxAge: 86400
+}));
 
 // Middlewares
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Responder a todas as requisições OPTIONS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
