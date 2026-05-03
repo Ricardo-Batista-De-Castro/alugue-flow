@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  tipo      String   // "proprietario" ou "inquilino"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relação quando for inquilino
+  inquilino Inquilino?
+
+  @@map("User")
+}
+
+model Imovel {
+  id          String   @id @default(uuid())
+  nome        String
+  tipo        String
+  endereco    String
+  numero      String
+  bairro      String
+  cidade      String
+  estado      String
+  cep         String
+  valorAluguel Float
+  status      String   @default("disponivel") // "disponivel" ou "alugado"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  contratos Contrato[]
+
+  @@map("Imovel")
+}
+
+model Inquilino {
+  id        String   @id @default(uuid())
+  nome      String
+  cpf       String   @unique
+  telefone  String
+  email     String   @unique
+  endereco  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relação com usuário
+  usuarioId String?  @unique
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+
+  // Relações
+  contratos Contrato[]
+
+  @@map("Inquilino")
+}
+
+model Contrato {
+  id             String   @id @default(uuid())
+  valorAluguel   Float
+  dataInicio     DateTime
+  dataVencimento DateTime
+  status         String   @default("ativo") // "ativo", "vencido", "cancelado"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relações
+  imovelId    String
+  imovel      Imovel    @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  
+  inquilinoId String
+  inquilino   Inquilino @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
+
+  @@map("Contrato")
+}
