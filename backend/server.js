@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configuração de CORS simplificada para debug
+// Configuração de CORS - IMPORTANTE: deve vir ANTES de outros middlewares
 app.use(cors({
   origin: true,
   credentials: true,
@@ -22,6 +22,22 @@ app.use(cors({
   optionsSuccessStatus: 200,
   maxAge: 86400
 }));
+
+// Handler explícito para preflight requests
+app.options('*', cors());
+
+// Middleware adicional para garantir headers CORS em todas as respostas
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 // Middlewares
 app.use(express.json());
