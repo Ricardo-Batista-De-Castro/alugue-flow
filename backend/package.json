@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch server.js",
-    "start": "node server.js",
+    "start": "npx prisma migrate deploy && npx prisma generate && node server.js",
     "build": "npm install && npx prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
