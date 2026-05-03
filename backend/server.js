@@ -12,30 +12,28 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configuração de CORS - IMPORTANTE: deve vir ANTES de outros middlewares
-app.use(cors({
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  optionsSuccessStatus: 200,
-  maxAge: 86400
-}));
-
-// Handler explícito para preflight requests
-app.options('*', cors());
-
-// Middleware adicional para garantir headers CORS em todas as respostas
+// Middleware CORS manual - mais controle sobre headers
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  const origin = req.headers.origin;
   
+  // Log para debug
+  console.log('📡 Request from origin:', origin);
+  console.log('🔍 Method:', req.method);
+  console.log('🛣️ Path:', req.path);
+  
+  // Permite todas as origens em produção (simplificado)
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  
+  // Responde imediatamente para OPTIONS
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    console.log('✅ Preflight request handled');
+    return res.status(204).end();
   }
+  
   next();
 });
 
