@@ -76,10 +76,10 @@ export const getContratoById = async (req, res) => {
 
 export const createContrato = async (req, res) => {
   try {
-    const { imovelId, inquilinoId, valorAluguel, dataInicio, dataVencimento, status } = req.body;
+    const { imovelId, inquilinoId, valorAluguel, dataInicio, dataFim, diaVencimento, observacoes, status } = req.body;
 
-    if (!imovelId || !inquilinoId || !valorAluguel || !dataInicio || !dataVencimento) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+    if (!imovelId || !inquilinoId || !valorAluguel || !dataInicio || !dataFim || !diaVencimento) {
+      return res.status(400).json({ error: 'Campos obrigatórios: imovelId, inquilinoId, valorAluguel, dataInicio, dataFim e diaVencimento' });
     }
 
     // Verificar se imóvel existe
@@ -118,7 +118,9 @@ export const createContrato = async (req, res) => {
         inquilinoId,
         valorAluguel: parseFloat(valorAluguel),
         dataInicio: new Date(dataInicio),
-        dataVencimento: new Date(dataVencimento),
+        dataFim: new Date(dataFim),
+        diaVencimento: parseInt(diaVencimento),
+        observacoes: observacoes || null,
         status: status || 'ativo',
       },
       include: {
@@ -146,7 +148,7 @@ export const createContrato = async (req, res) => {
 export const updateContrato = async (req, res) => {
   try {
     const { id } = req.params;
-    const { valorAluguel, dataInicio, dataVencimento, status } = req.body;
+    const { valorAluguel, dataInicio, dataFim, diaVencimento, observacoes, status } = req.body;
 
     const contratoExistente = await prisma.contrato.findUnique({
       where: { id },
@@ -161,7 +163,9 @@ export const updateContrato = async (req, res) => {
       data: {
         valorAluguel: valorAluguel ? parseFloat(valorAluguel) : undefined,
         dataInicio: dataInicio ? new Date(dataInicio) : undefined,
-        dataVencimento: dataVencimento ? new Date(dataVencimento) : undefined,
+        dataFim: dataFim ? new Date(dataFim) : undefined,
+        diaVencimento: diaVencimento ? parseInt(diaVencimento) : undefined,
+        observacoes: observacoes !== undefined ? observacoes : undefined,
         status,
       },
       include: {

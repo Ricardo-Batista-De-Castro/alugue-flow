@@ -8,7 +8,11 @@ const Imoveis = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingImovel, setEditingImovel] = useState(null);
   const [formData, setFormData] = useState({
+    nome: '',
     endereco: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
     cidade: '',
     estado: '',
     cep: '',
@@ -66,21 +70,29 @@ const Imoveis = () => {
     if (imovel) {
       setEditingImovel(imovel);
       setFormData({
-        endereco: imovel.endereco,
-        cidade: imovel.cidade,
-        estado: imovel.estado,
-        cep: imovel.cep,
-        tipo: imovel.tipo,
-        quartos: imovel.quartos,
-        banheiros: imovel.banheiros,
-        area: imovel.area,
-        valorAluguel: imovel.valorAluguel,
-        status: imovel.status,
+        nome: imovel.nome || '',
+        endereco: imovel.endereco || '',
+        numero: imovel.numero || '',
+        complemento: imovel.complemento || '',
+        bairro: imovel.bairro || '',
+        cidade: imovel.cidade || '',
+        estado: imovel.estado || '',
+        cep: imovel.cep || '',
+        tipo: imovel.tipo || 'apartamento',
+        quartos: imovel.quartos || '',
+        banheiros: imovel.banheiros || '',
+        area: imovel.area || '',
+        valorAluguel: imovel.valorAluguel || '',
+        status: imovel.status || 'disponivel',
       });
     } else {
       setEditingImovel(null);
       setFormData({
+        nome: '',
         endereco: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
         cidade: '',
         estado: '',
         cep: '',
@@ -149,10 +161,13 @@ const Imoveis = () => {
               </div>
 
               <h3 className="text-lg font-bold text-gray-800 mb-2">
-                {imovel.endereco}
+                {imovel.nome || imovel.endereco}
               </h3>
+              <p className="text-gray-600 text-sm mb-1">
+                {imovel.endereco}, {imovel.numero}
+              </p>
               <p className="text-gray-600 text-sm mb-4">
-                {imovel.cidade}, {imovel.estado}
+                {imovel.bairro} - {imovel.cidade}, {imovel.estado}
               </p>
 
               <div className="grid grid-cols-3 gap-2 mb-4 text-sm text-gray-600">
@@ -211,12 +226,71 @@ const Imoveis = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-gray-700 font-medium mb-2">
+                        Nome/Identificação do Imóvel
+                      </label>
+                      <input
+                        type="text"
+                        name="nome"
+                        value={formData.nome}
+                        onChange={handleChange}
+                        className="input-field"
+                        placeholder="Ex: Apartamento Centro, Casa Praia, etc."
+                        required
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-gray-700 font-medium mb-2">
                         Endereço
                       </label>
                       <input
                         type="text"
                         name="endereco"
                         value={formData.endereco}
+                        onChange={handleChange}
+                        className="input-field"
+                        placeholder="Rua, Avenida, etc."
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Número
+                      </label>
+                      <input
+                        type="text"
+                        name="numero"
+                        value={formData.numero}
+                        onChange={handleChange}
+                        className="input-field"
+                        placeholder="123"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Complemento
+                      </label>
+                      <input
+                        type="text"
+                        name="complemento"
+                        value={formData.complemento}
+                        onChange={handleChange}
+                        className="input-field"
+                        placeholder="Apto 101, Bloco A, etc."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Bairro
+                      </label>
+                      <input
+                        type="text"
+                        name="bairro"
+                        value={formData.bairro}
                         onChange={handleChange}
                         className="input-field"
                         required

@@ -59,15 +59,35 @@ export const getDashboard = async (req, res) => {
         },
       });
 
-      // Filtrar contratos que vencem nos próximos 30 dias
+      // Filtrar contratos que vencem nos próximos 30 dias e calcular dataVencimento
       const diaAtual = hoje.getDate();
-      const contratosVencendoFiltrados = contratosVencendo.filter(contrato => {
-        const diaVencimento = contrato.diaVencimento;
-        const diasRestantes = diaVencimento >= diaAtual 
-          ? diaVencimento - diaAtual 
-          : (30 - diaAtual) + diaVencimento;
-        return diasRestantes <= 30;
-      });
+      const mesAtual = hoje.getMonth();
+      const anoAtual = hoje.getFullYear();
+      
+      const contratosVencendoFiltrados = contratosVencendo
+        .map(contrato => {
+          const diaVencimento = contrato.diaVencimento;
+          
+          // Calcular a próxima data de vencimento
+          let dataVencimento;
+          if (diaVencimento >= diaAtual) {
+            // Vencimento é neste mês
+            dataVencimento = new Date(anoAtual, mesAtual, diaVencimento);
+          } else {
+            // Vencimento é no próximo mês
+            dataVencimento = new Date(anoAtual, mesAtual + 1, diaVencimento);
+          }
+          
+          const diasRestantes = Math.ceil((dataVencimento - hoje) / (1000 * 60 * 60 * 24));
+          
+          return {
+            ...contrato,
+            dataVencimento: dataVencimento.toISOString(),
+            diasRestantes,
+          };
+        })
+        .filter(contrato => contrato.diasRestantes <= 30 && contrato.diasRestantes >= 0)
+        .sort((a, b) => a.diasRestantes - b.diasRestantes);
 
       // Últimos imóveis cadastrados
       const ultimosImoveis = await prisma.imovel.findMany({

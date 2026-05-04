@@ -68,9 +68,9 @@ export const getInquilinoById = async (req, res) => {
 
 export const createInquilino = async (req, res) => {
   try {
-    const { nome, cpf, telefone, email, endereco, criarUsuario, senha } = req.body;
+    const { nome, cpf, rg, telefone, email, profissao, rendaMensal, criarUsuario, senha } = req.body;
 
-    if (!nome || !cpf || !telefone || !email || !endereco) {
+    if (!nome || !cpf || !telefone || !email) {
       return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
 
@@ -122,9 +122,11 @@ export const createInquilino = async (req, res) => {
       data: {
         nome,
         cpf,
+        rg: rg || null,
         telefone,
         email,
-        endereco,
+        profissao: profissao || null,
+        rendaMensal: rendaMensal ? parseFloat(rendaMensal) : null,
         usuarioId,
       },
     });
@@ -142,7 +144,7 @@ export const createInquilino = async (req, res) => {
 export const updateInquilino = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, cpf, telefone, email, endereco } = req.body;
+    const { nome, cpf, rg, telefone, email, profissao, rendaMensal } = req.body;
 
     const inquilinoExistente = await prisma.inquilino.findUnique({
       where: { id },
@@ -179,9 +181,11 @@ export const updateInquilino = async (req, res) => {
       data: {
         nome,
         cpf,
+        rg: rg || null,
         telefone,
         email,
-        endereco,
+        profissao: profissao || null,
+        rendaMensal: rendaMensal ? parseFloat(rendaMensal) : null,
       },
     });
 

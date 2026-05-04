@@ -145,16 +145,26 @@ const Inquilinos = () => {
                   <span className="text-gray-600">CPF:</span>
                   <p className="text-gray-800">{inquilino.cpf}</p>
                 </div>
-                <div className="text-sm">
-                  <span className="text-gray-600">Profissão:</span>
-                  <p className="text-gray-800">{inquilino.profissao}</p>
-                </div>
-                <div className="text-sm">
-                  <span className="text-gray-600">Renda Mensal:</span>
-                  <p className="text-gray-800 font-medium">
-                    {formatCurrency(inquilino.rendaMensal)}
-                  </p>
-                </div>
+                {inquilino.rg && (
+                  <div className="text-sm">
+                    <span className="text-gray-600">RG:</span>
+                    <p className="text-gray-800">{inquilino.rg}</p>
+                  </div>
+                )}
+                {inquilino.profissao && (
+                  <div className="text-sm">
+                    <span className="text-gray-600">Profissão:</span>
+                    <p className="text-gray-800">{inquilino.profissao}</p>
+                  </div>
+                )}
+                {inquilino.rendaMensal && (
+                  <div className="text-sm">
+                    <span className="text-gray-600">Renda Mensal:</span>
+                    <p className="text-gray-800 font-medium">
+                      {formatCurrency(inquilino.rendaMensal)}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">
