@@ -16,68 +16,170 @@ model Usuario {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relação quando for inquilino
-  inquilino Inquilino?
+  // Relações
+  inquilino     Inquilino?
+  notificacoes  Notificacao[]
 
-  @@map("User")
+  @@map("usuario")
 }
 
 model Imovel {
-  id          String   @id @default(uuid())
-  nome        String
-  tipo        String
-  endereco    String
-  numero      String
-  bairro      String
-  cidade      String
-  estado      String
-  cep         String
+  id           String        @id @default(uuid())
+  nome         String
+  tipo         String
+  endereco     String
+  numero       String
+  complemento  String?
+  bairro       String
+  cidade       String
+  estado       String
+  cep          String
+  quartos      Int?
+  banheiros    Int?
+  area         Float?
   valorAluguel Float
-  status      String   @default("disponivel") // "disponivel" ou "alugado"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status       String        @default("disponivel") // "disponivel" ou "alugado"
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   // Relações
-  contratos Contrato[]
+  contratos    Contrato[]
+  documentos   Documento[]
+  manutencoes  Manutencao[]
 
-  @@map("Imovel")
+  @@map("imovel")
 }
 
 model Inquilino {
-  id        String   @id @default(uuid())
-  nome      String
-  cpf       String   @unique
-  telefone  String
-  email     String   @unique
-  endereco  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String    @id @default(uuid())
+  nome           String
+  cpf            String    @unique
+  rg             String?
+  dataNascimento DateTime?
+  telefone       String
+  email          String    @unique
+  profissao      String?
+  rendaMensal    Float?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Relação com usuário
   usuarioId String?  @unique
   usuario   Usuario? @relation(fields: [usuarioId], references: [id])
 
   // Relações
-  contratos Contrato[]
+  contratos  Contrato[]
+  documentos Documento[]
 
-  @@map("Inquilino")
+  @@map("inquilino")
 }
 
 model Contrato {
+  id            String   @id @default(uuid())
+  imovelId      String
+  inquilinoId   String
+  dataInicio    DateTime
+  dataFim       DateTime
+  valorAluguel  Float
+  diaVencimento Int
+  status        String   @default("ativo") // "ativo", "encerrado", "cancelado"
+  observacoes   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relações
+  imovel      Imovel        @relation(fields: [imovelId], references: [id], onDelete: Restrict)
+  inquilino   Inquilino     @relation(fields: [inquilinoId], references: [id], onDelete: Restrict)
+  documentos  Documento[]
+  pagamentos  Pagamento[]
+
+  @@index([imovelId])
+  @@index([inquilinoId])
+  @@map("contrato")
+}
+
+model Documento {
+  id          String   @id @default(uuid())
+  tipo        String
+  nome        String
+  url         String
+  contratoId  String?
+  inquilinoId String?
+  imovelId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  contrato  Contrato?  @relation(fields: [contratoId], references: [id])
+  inquilino Inquilino? @relation(fields: [inquilinoId], references: [id])
+  imovel    Imovel?    @relation(fields: [imovelId], references: [id])
+
+  @@index([contratoId])
+  @@index([inquilinoId])
+  @@index([imovelId])
+  @@map("documento")
+}
+
+model Pagamento {
   id             String   @id @default(uuid())
-  valorAluguel   Float
-  dataInicio     DateTime
+  contratoId     String
+  valor          Float
+  dataPagamento  DateTime?
   dataVencimento DateTime
-  status         String   @default("ativo") // "ativo", "vencido", "cancelado"
+  status         String   @default("pendente") // "pendente", "pago", "atrasado"
+  formaPagamento String?  // "pix", "boleto", "transferencia", "dinheiro"
+  comprovante    String?
+  observacoes    String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   // Relações
-  imovelId    String
-  imovel      Imovel    @relation(fields: [imovelId], references: [id], onDelete: Cascade)
-  
-  inquilinoId String
-  inquilino   Inquilino @relation(fields: [inquilinoId], references: [id], onDelete: Cascade)
+  contrato Contrato @relation(fields: [contratoId], references: [id], onDelete: Cascade)
 
-  @@map("Contrato")
+  @@index([contratoId])
+  @@index([dataVencimento])
+  @@map("pagamento")
+}
+
+model Manutencao {
+  id          String   @id @default(uuid())
+  imovelId    String
+  tipo        String   // "preventiva", "corretiva", "emergencial"
+  descricao   String
+  status      String   @default("pendente") // "pendente", "em_andamento", "concluida", "cancelada"
+  prioridade  String   @default("media") // "baixa", "media", "alta", "urgente"
+  dataAbertura DateTime @default(now())
+  dataConclusao DateTime?
+  valor       Float?
+  responsavel String?
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  imovel Imovel @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+
+  @@index([imovelId])
+  @@index([status])
+  @@map("manutencao")
+}
+
+model Notificacao {
+  id        String   @id @default(uuid())
+  usuarioId String
+  tipo      String   // "pagamento", "manutencao", "contrato", "sistema"
+  titulo    String
+  mensagem  String
+  lida      Boolean  @default(false)
+  dataLida  DateTime?
+  link      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([lida])
+  @@map("notificacao")
 }

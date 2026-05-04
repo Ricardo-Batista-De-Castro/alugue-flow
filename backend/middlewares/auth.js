@@ -36,7 +36,7 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
-export const authorize = (...allowedRoles) => {
+export const authorize = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Usuário não autenticado' });

@@ -59,31 +59,51 @@ export const createImovel = async (req, res) => {
       tipo,
       endereco,
       numero,
+      complemento,
       bairro,
       cidade,
       estado,
       cep,
+      quartos,
+      banheiros,
+      area,
       valorAluguel,
       status,
     } = req.body;
 
+    // Validar campos obrigatórios
     if (!nome || !tipo || !endereco || !numero || !bairro || !cidade || !estado || !cep || !valorAluguel) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos' });
     }
 
+    // Validar formato dos campos numéricos
+    const valorAluguelNum = parseFloat(valorAluguel);
+    if (isNaN(valorAluguelNum) || valorAluguelNum <= 0) {
+      return res.status(400).json({ error: 'Valor do aluguel inválido' });
+    }
+
+    // Preparar dados para criação
+    const data = {
+      nome: nome.trim(),
+      tipo: tipo.trim(),
+      endereco: endereco.trim(),
+      numero: numero.trim(),
+      bairro: bairro.trim(),
+      cidade: cidade.trim(),
+      estado: estado.trim(),
+      cep: cep.trim(),
+      valorAluguel: valorAluguelNum,
+      status: status || 'disponivel',
+    };
+
+    // Adicionar campos opcionais se fornecidos
+    if (complemento) data.complemento = complemento.trim();
+    if (quartos) data.quartos = parseInt(quartos);
+    if (banheiros) data.banheiros = parseInt(banheiros);
+    if (area) data.area = parseFloat(area);
+
     const imovel = await prisma.imovel.create({
-      data: {
-        nome,
-        tipo,
-        endereco,
-        numero,
-        bairro,
-        cidade,
-        estado,
-        cep,
-        valorAluguel: parseFloat(valorAluguel),
-        status: status || 'disponivel',
-      },
+      data,
     });
 
     return res.status(201).json({
@@ -92,7 +112,10 @@ export const createImovel = async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao criar imóvel:', error);
-    return res.status(500).json({ error: 'Erro ao cadastrar imóvel' });
+    return res.status(500).json({ 
+      error: 'Erro ao cadastrar imóvel',
+      details: error.message 
+    });
   }
 };
 
@@ -104,10 +127,14 @@ export const updateImovel = async (req, res) => {
       tipo,
       endereco,
       numero,
+      complemento,
       bairro,
       cidade,
       estado,
       cep,
+      quartos,
+      banheiros,
+      area,
       valorAluguel,
       status,
     } = req.body;
@@ -120,20 +147,27 @@ export const updateImovel = async (req, res) => {
       return res.status(404).json({ error: 'Imóvel não encontrado' });
     }
 
+    // Preparar dados para atualização
+    const data = {};
+    
+    if (nome !== undefined) data.nome = nome.trim();
+    if (tipo !== undefined) data.tipo = tipo.trim();
+    if (endereco !== undefined) data.endereco = endereco.trim();
+    if (numero !== undefined) data.numero = numero.trim();
+    if (complemento !== undefined) data.complemento = complemento ? complemento.trim() : null;
+    if (bairro !== undefined) data.bairro = bairro.trim();
+    if (cidade !== undefined) data.cidade = cidade.trim();
+    if (estado !== undefined) data.estado = estado.trim();
+    if (cep !== undefined) data.cep = cep.trim();
+    if (quartos !== undefined) data.quartos = quartos ? parseInt(quartos) : null;
+    if (banheiros !== undefined) data.banheiros = banheiros ? parseInt(banheiros) : null;
+    if (area !== undefined) data.area = area ? parseFloat(area) : null;
+    if (valorAluguel !== undefined) data.valorAluguel = parseFloat(valorAluguel);
+    if (status !== undefined) data.status = status;
+
     const imovel = await prisma.imovel.update({
       where: { id },
-      data: {
-        nome,
-        tipo,
-        endereco,
-        numero,
-        bairro,
-        cidade,
-        estado,
-        cep,
-        valorAluguel: valorAluguel ? parseFloat(valorAluguel) : undefined,
-        status,
-      },
+      data,
     });
 
     return res.status(200).json({
@@ -142,7 +176,10 @@ export const updateImovel = async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao atualizar imóvel:', error);
-    return res.status(500).json({ error: 'Erro ao atualizar imóvel' });
+    return res.status(500).json({ 
+      error: 'Erro ao atualizar imóvel',
+      details: error.message 
+    });
   }
 };
 

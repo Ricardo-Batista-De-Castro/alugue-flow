@@ -39,10 +39,6 @@ export const getDashboard = async (req, res) => {
       const contratosVencendo = await prisma.contrato.findMany({
         where: {
           status: 'ativo',
-          dataVencimento: {
-            gte: hoje,
-            lte: proximoMes,
-          },
         },
         include: {
           imovel: {
@@ -59,8 +55,18 @@ export const getDashboard = async (req, res) => {
           },
         },
         orderBy: {
-          dataVencimento: 'asc',
+          diaVencimento: 'asc',
         },
+      });
+
+      // Filtrar contratos que vencem nos próximos 30 dias
+      const diaAtual = hoje.getDate();
+      const contratosVencendoFiltrados = contratosVencendo.filter(contrato => {
+        const diaVencimento = contrato.diaVencimento;
+        const diasRestantes = diaVencimento >= diaAtual 
+          ? diaVencimento - diaAtual 
+          : (30 - diaAtual) + diaVencimento;
+        return diasRestantes <= 30;
       });
 
       // Últimos imóveis cadastrados
@@ -85,7 +91,7 @@ export const getDashboard = async (req, res) => {
           contratosVencidos,
           receitaMensal,
         },
-        contratosVencendo,
+        contratosVencendo: contratosVencendoFiltrados,
         ultimosImoveis,
         ultimosInquilinos,
       });
@@ -112,9 +118,16 @@ export const getDashboard = async (req, res) => {
       let diasAteVencimento = null;
       if (contratoAtivo) {
         const hoje = new Date();
-        const vencimento = new Date(contratoAtivo.dataVencimento);
-        const diffTime = vencimento.getTime() - hoje.getTime();
-        diasAteVencimento = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diaAtual = hoje.getDate();
+        const diaVencimento = contratoAtivo.diaVencimento;
+        
+        if (diaVencimento >= diaAtual) {
+          diasAteVencimento = diaVencimento - diaAtual;
+        } else {
+          // Vencimento é no próximo mês
+          const ultimoDiaMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+          diasAteVencimento = (ultimoDiaMes - diaAtual) + diaVencimento;
+        }
       }
 
       return res.status(200).json({

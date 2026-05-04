@@ -7,11 +7,11 @@ export const register = async (req, res) => {
     const { nome, email, senha, tipo } = req.body;
 
     if (!nome || !email || !senha || !tipo) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      return res.status(400).json({ error: 'Todos os campos sรฃo obrigatรณrios' });
     }
 
     if (!['proprietario', 'inquilino'].includes(tipo)) {
-      return res.status(400).json({ error: 'Tipo de usuário inválido' });
+      return res.status(400).json({ error: 'Tipo de usuรกrio invรกlido' });
     }
 
     const usuarioExistente = await prisma.usuario.findUnique({
@@ -19,7 +19,7 @@ export const register = async (req, res) => {
     });
 
     if (usuarioExistente) {
-      return res.status(400).json({ error: 'E-mail já cadastrado' });
+      return res.status(400).json({ error: 'E-mail jรก cadastrado' });
     }
 
     const senhaHash = await bcrypt.hash(senha, 10);
@@ -43,13 +43,13 @@ export const register = async (req, res) => {
     const token = generateToken({ id: usuario.id, email: usuario.email, tipo: usuario.tipo });
 
     return res.status(201).json({
-      message: 'Usuário cadastrado com sucesso',
+      message: 'Usuรกrio cadastrado com sucesso',
       usuario,
       token,
     });
   } catch (error) {
     console.error('Erro no registro:', error);
-    return res.status(500).json({ error: 'Erro ao cadastrar usuário' });
+    return res.status(500).json({ error: 'Erro ao cadastrar usuรกrio' });
   }
 };
 
@@ -58,7 +58,7 @@ export const login = async (req, res) => {
     const { email, senha } = req.body;
 
     if (!email || !senha) {
-      return res.status(400).json({ error: 'E-mail e senha são obrigatórios' });
+      return res.status(400).json({ error: 'E-mail e senha sรฃo obrigatรณrios' });
     }
 
     const usuario = await prisma.usuario.findUnique({
@@ -66,13 +66,13 @@ export const login = async (req, res) => {
     });
 
     if (!usuario) {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      return res.status(401).json({ error: 'Credenciais invรกlidas' });
     }
 
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
 
     if (!senhaValida) {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      return res.status(401).json({ error: 'Credenciais invรกlidas' });
     }
 
     const token = generateToken({ id: usuario.id, email: usuario.email, tipo: usuario.tipo });
@@ -105,7 +105,7 @@ export const me = async (req, res) => {
             id: true,
             cpf: true,
             telefone: true,
-            endereco: true,
+            email: true,
           },
         },
       },
@@ -113,7 +113,7 @@ export const me = async (req, res) => {
 
     return res.status(200).json(usuario);
   } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
-    return res.status(500).json({ error: 'Erro ao buscar dados do usuário' });
+    console.error('Erro ao buscar usuรกrio:', error);
+    return res.status(500).json({ error: 'Erro ao buscar dados do usuรกrio' });
   }
 };
