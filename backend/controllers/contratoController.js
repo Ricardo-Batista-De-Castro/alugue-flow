@@ -2,38 +2,69 @@ import prisma from '../config/database.js';
 
 export const getContratos = async (req, res) => {
   try {
-    let contratos;
+    const { page = 1, limit = 10, status } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    let where = {};
 
     // Se for inquilino, retornar apenas seus contratos
     if (req.user.tipo === 'inquilino') {
       const inquilino = await prisma.inquilino.findFirst({
         where: { usuarioId: req.user.id },
+        select: { id: true }
       });
 
       if (!inquilino) {
         return res.status(404).json({ error: 'Inquilino não encontrado' });
       }
 
-      contratos = await prisma.contrato.findMany({
-        where: { inquilinoId: inquilino.id },
-        orderBy: { createdAt: 'desc' },
-        include: {
-          imovel: true,
-          inquilino: true,
-        },
-      });
-    } else {
-      // Se for proprietário, retornar todos os contratos
-      contratos = await prisma.contrato.findMany({
-        orderBy: { createdAt: 'desc' },
-        include: {
-          imovel: true,
-          inquilino: true,
-        },
-      });
+      where.inquilinoId = inquilino.id;
     }
 
-    return res.status(200).json(contratos);
+    // Adicionar filtro de status se fornecido
+    if (status) {
+      where.status = status;
+    }
+
+    const [contratos, total] = await Promise.all([
+      prisma.contrato.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          imovel: {
+            select: {
+              id: true,
+              nome: true,
+              endereco: true,
+              numero: true,
+              bairro: true,
+              cidade: true
+            }
+          },
+          inquilino: {
+            select: {
+              id: true,
+              nome: true,
+              telefone: true,
+              email: true
+            }
+          },
+        },
+      }),
+      prisma.contrato.count({ where })
+    ]);
+
+    return res.status(200).json({
+      contratos,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     console.error('Erro ao buscar contratos:', error);
     return res.status(500).json({ error: 'Erro ao buscar contratos' });

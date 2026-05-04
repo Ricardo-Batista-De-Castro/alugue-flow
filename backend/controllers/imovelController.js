@@ -2,24 +2,43 @@ import prisma from '../config/database.js';
 
 export const getImoveis = async (req, res) => {
   try {
-    const imoveis = await prisma.imovel.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        contratos: {
-          where: { status: 'ativo' },
-          include: {
-            inquilino: {
-              select: {
-                nome: true,
-                telefone: true,
+    const { page = 1, limit = 10, status } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const where = status ? { status } : undefined;
+
+    const [imoveis, total] = await Promise.all([
+      prisma.imovel.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          contratos: {
+            where: { status: 'ativo' },
+            include: {
+              inquilino: {
+                select: {
+                  nome: true,
+                  telefone: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.imovel.count({ where })
+    ]);
 
-    return res.status(200).json(imoveis);
+    return res.status(200).json({
+      imoveis,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     console.error('Erro ao buscar imóveis:', error);
     return res.status(500).json({ error: 'Erro ao buscar imóveis' });

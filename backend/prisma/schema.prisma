@@ -20,6 +20,7 @@ model Usuario {
   inquilino     Inquilino?
   notificacoes  Notificacao[]
 
+  @@index([tipo])
   @@map("usuario")
 }
 
@@ -47,6 +48,9 @@ model Imovel {
   documentos   Documento[]
   manutencoes  Manutencao[]
 
+  @@index([status])
+  @@index([createdAt])
+  @@index([cidade, estado])
   @@map("imovel")
 }
 
@@ -71,6 +75,7 @@ model Inquilino {
   contratos  Contrato[]
   documentos Documento[]
 
+  @@index([createdAt])
   @@map("inquilino")
 }
 
@@ -95,6 +100,9 @@ model Contrato {
 
   @@index([imovelId])
   @@index([inquilinoId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([dataInicio, dataFim])
   @@map("contrato")
 }
 
