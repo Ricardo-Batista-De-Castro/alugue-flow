@@ -31,11 +31,14 @@ const Contratos = () => {
         api.get('/api/imoveis'),
         api.get('/api/inquilinos'),
       ]);
-      setContratos(contratosRes.data);
-      setImoveis(imoveisRes.data);
-      setInquilinos(inquilinosRes.data);
+      
+      // Backend pode retornar objetos com paginação ou arrays diretos
+      setContratos(contratosRes.data.contratos || contratosRes.data);
+      setImoveis(imoveisRes.data.imoveis || imoveisRes.data);
+      setInquilinos(inquilinosRes.data.inquilinos || inquilinosRes.data);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+      alert('Erro ao carregar dados. Verifique sua conexão.');
     } finally {
       setLoading(false);
     }

@@ -31,9 +31,11 @@ const Imoveis = () => {
   const loadImoveis = async () => {
     try {
       const response = await api.get('/api/imoveis');
-      setImoveis(response.data);
+      // Backend retorna { imoveis: [], pagination: {} }
+      setImoveis(response.data.imoveis || response.data);
     } catch (error) {
       console.error('Erro ao carregar imóveis:', error);
+      alert('Erro ao carregar imóveis. Verifique sua conexão.');
     } finally {
       setLoading(false);
     }
