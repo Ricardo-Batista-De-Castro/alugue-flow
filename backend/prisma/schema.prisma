@@ -58,6 +58,7 @@ model Inquilino {
   profissao   String?
   rendaMensal Float?
   endereco    String?
+  dataNascimento DateTime? @db.Date 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

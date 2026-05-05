@@ -1,12 +1,18 @@
-import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { useState } from 'react';
 import Layout from '../components/Layout';
+import { useContratos, useCreateContrato, useUpdateContrato, useDeleteContrato } from '../hooks/useContratos';
+import { useImoveis } from '../hooks/useImoveis';
+import { useInquilinos } from '../hooks/useInquilinos';
 
 const Contratos = () => {
-  const [contratos, setContratos] = useState([]);
-  const [imoveis, setImoveis] = useState([]);
-  const [inquilinos, setInquilinos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: contratos = [], isLoading: isLoadingContratos, error: errorContratos } = useContratos();
+  const { data: imoveis = [], isLoading: isLoadingImoveis } = useImoveis();
+  const { data: inquilinos = [], isLoading: isLoadingInquilinos } = useInquilinos();
+  
+  const createContrato = useCreateContrato();
+  const updateContrato = useUpdateContrato();
+  const deleteContrato = useDeleteContrato();
+
   const [showModal, setShowModal] = useState(false);
   const [editingContrato, setEditingContrato] = useState(null);
   const [formData, setFormData] = useState({
@@ -20,39 +26,16 @@ const Contratos = () => {
     status: 'ativo',
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const [contratosRes, imoveisRes, inquilinosRes] = await Promise.all([
-        api.get('/api/contratos'),
-        api.get('/api/imoveis'),
-        api.get('/api/inquilinos'),
-      ]);
-      
-      // Backend pode retornar objetos com paginação ou arrays diretos
-      setContratos(contratosRes.data.contratos || contratosRes.data);
-      setImoveis(imoveisRes.data.imoveis || imoveisRes.data);
-      setInquilinos(inquilinosRes.data.inquilinos || inquilinosRes.data);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      alert('Erro ao carregar dados. Verifique sua conexão.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const isLoading = isLoadingContratos || isLoadingImoveis || isLoadingInquilinos;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingContrato) {
-        await api.put(`/api/contratos/${editingContrato.id}`, formData);
+        await updateContrato.mutateAsync({ id: editingContrato.id, data: formData });
       } else {
-        await api.post('/api/contratos', formData);
+        await createContrato.mutateAsync(formData);
       }
-      loadData();
       closeModal();
     } catch (error) {
       console.error('Erro ao salvar contrato:', error);
@@ -63,8 +46,7 @@ const Contratos = () => {
   const handleDelete = async (id) => {
     if (!confirm('Deseja realmente excluir este contrato?')) return;
     try {
-      await api.delete(`/api/contratos/${id}`);
-      loadData();
+      await deleteContrato.mutateAsync(id);
     } catch (error) {
       console.error('Erro ao excluir contrato:', error);
       alert('Erro ao excluir contrato');
@@ -123,11 +105,21 @@ const Contratos = () => {
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (errorContratos) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <p className="text-red-600 text-lg">Erro ao carregar contratos. Tente novamente.</p>
         </div>
       </Layout>
     );

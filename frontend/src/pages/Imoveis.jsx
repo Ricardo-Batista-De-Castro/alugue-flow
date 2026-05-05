@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { useState } from 'react';
 import Layout from '../components/Layout';
+import { useImoveis, useCreateImovel, useUpdateImovel, useDeleteImovel } from '../hooks/useImoveis';
 
 const Imoveis = () => {
-  const [imoveis, setImoveis] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: imoveis = [], isLoading, error } = useImoveis();
+  const createImovel = useCreateImovel();
+  const updateImovel = useUpdateImovel();
+  const deleteImovel = useDeleteImovel();
+
   const [showModal, setShowModal] = useState(false);
   const [editingImovel, setEditingImovel] = useState(null);
   const [formData, setFormData] = useState({
@@ -24,32 +27,14 @@ const Imoveis = () => {
     status: 'disponivel',
   });
 
-  useEffect(() => {
-    loadImoveis();
-  }, []);
-
-  const loadImoveis = async () => {
-    try {
-      const response = await api.get('/api/imoveis');
-      // Backend retorna { imoveis: [], pagination: {} }
-      setImoveis(response.data.imoveis || response.data);
-    } catch (error) {
-      console.error('Erro ao carregar imóveis:', error);
-      alert('Erro ao carregar imóveis. Verifique sua conexão.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingImovel) {
-        await api.put(`/api/imoveis/${editingImovel.id}`, formData);
+        await updateImovel.mutateAsync({ id: editingImovel.id, data: formData });
       } else {
-        await api.post('/api/imoveis', formData);
+        await createImovel.mutateAsync(formData);
       }
-      loadImoveis();
       closeModal();
     } catch (error) {
       console.error('Erro ao salvar imóvel:', error);
@@ -60,8 +45,7 @@ const Imoveis = () => {
   const handleDelete = async (id) => {
     if (!confirm('Deseja realmente excluir este imóvel?')) return;
     try {
-      await api.delete(`/api/imoveis/${id}`);
-      loadImoveis();
+      await deleteImovel.mutateAsync(id);
     } catch (error) {
       console.error('Erro ao excluir imóvel:', error);
       alert('Erro ao excluir imóvel');
@@ -128,11 +112,21 @@ const Imoveis = () => {
     }).format(value);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <p className="text-red-600 text-lg">Erro ao carregar imóveis. Tente novamente.</p>
         </div>
       </Layout>
     );

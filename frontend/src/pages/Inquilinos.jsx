@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { useState } from 'react';
 import Layout from '../components/Layout';
+import { useInquilinos, useCreateInquilino, useUpdateInquilino, useDeleteInquilino } from '../hooks/useInquilinos';
 
 const Inquilinos = () => {
-  const [inquilinos, setInquilinos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: inquilinos = [], isLoading, error } = useInquilinos();
+  const createInquilino = useCreateInquilino();
+  const updateInquilino = useUpdateInquilino();
+  const deleteInquilino = useDeleteInquilino();
+
   const [showModal, setShowModal] = useState(false);
   const [editingInquilino, setEditingInquilino] = useState(null);
   const [formData, setFormData] = useState({
@@ -17,30 +20,14 @@ const Inquilinos = () => {
     rendaMensal: '',
   });
 
-  useEffect(() => {
-    loadInquilinos();
-  }, []);
-
-  const loadInquilinos = async () => {
-    try {
-      const response = await api.get('/api/inquilinos');
-      setInquilinos(response.data);
-    } catch (error) {
-      console.error('Erro ao carregar inquilinos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingInquilino) {
-        await api.put(`/api/inquilinos/${editingInquilino.id}`, formData);
+        await updateInquilino.mutateAsync({ id: editingInquilino.id, data: formData });
       } else {
-        await api.post('/api/inquilinos', formData);
+        await createInquilino.mutateAsync(formData);
       }
-      loadInquilinos();
       closeModal();
     } catch (error) {
       console.error('Erro ao salvar inquilino:', error);
@@ -51,8 +38,7 @@ const Inquilinos = () => {
   const handleDelete = async (id) => {
     if (!confirm('Deseja realmente excluir este inquilino?')) return;
     try {
-      await api.delete(`/api/inquilinos/${id}`);
-      loadInquilinos();
+      await deleteInquilino.mutateAsync(id);
     } catch (error) {
       console.error('Erro ao excluir inquilino:', error);
       alert('Erro ao excluir inquilino');
@@ -105,11 +91,21 @@ const Inquilinos = () => {
     }).format(value);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <p className="text-red-600 text-lg">Erro ao carregar inquilinos. Tente novamente.</p>
         </div>
       </Layout>
     );
