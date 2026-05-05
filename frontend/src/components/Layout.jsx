@@ -1,10 +1,12 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -13,6 +15,16 @@ const Layout = ({ children }) => {
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  // Função para obter as iniciais do nome
+  const getInitials = (name) => {
+    if (!name) return '';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
   const menuItems = user?.tipo === 'proprietario' ? [
@@ -27,20 +39,55 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-primary-600">AlugueFlow</h1>
+            <div className="flex items-center space-x-4">
+              {/* Botão Hambúrguer - Apenas Mobile */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Menu"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {mobileMenuOpen ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  )}
+                </svg>
+              </button>
+              
+              <h1 className="text-xl md:text-2xl font-bold text-primary-600">
+                AlugueFlow
+              </h1>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">
-                {user?.nome} ({user?.tipo})
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <span className="text-xs md:text-base text-gray-700 font-medium">
+                <span className="md:hidden">{getInitials(user?.nome)}</span>
+                <span className="hidden md:inline">
+                  {user?.nome} ({user?.tipo})
+                </span>
               </span>
               <button
                 onClick={handleLogout}
-                className="btn-secondary text-sm"
+                className="btn-secondary text-xs md:text-sm px-2 py-1.5 md:px-4 md:py-2 whitespace-nowrap"
               >
                 Sair
               </button>
@@ -49,14 +96,31 @@ const Layout = ({ children }) => {
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex relative">
+        {/* Backdrop Mobile */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-sm min-h-[calc(100vh-4rem)]">
+        <aside
+          className={`
+            fixed md:static inset-y-0 left-0 z-50
+            w-64 bg-white shadow-lg md:shadow-sm 
+            transform transition-transform duration-300 ease-in-out
+            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            mt-16 md:mt-0 min-h-[calc(100vh-4rem)]
+          `}
+        >
           <nav className="p-4 space-y-2">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`block px-4 py-2 rounded-lg transition-colors ${
                   isActive(item.path)
                     ? 'bg-primary-600 text-white'
@@ -70,7 +134,7 @@ const Layout = ({ children }) => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8 w-full">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
