@@ -4,14 +4,30 @@ import prisma from '../config/database.js';
 
 export const register = async (req, res) => {
   try {
-    const { nome, email, senha, tipo } = req.body;
+    const { nome, email, senha, tipo, telefone, cpf, rg, profissao, rendaMensal } = req.body;
 
     if (!nome || !email || !senha || !tipo) {
-      return res.status(400).json({ error: 'Todos os campos sรฃo obrigatรณrios' });
+      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
 
     if (!['proprietario', 'inquilino'].includes(tipo)) {
-      return res.status(400).json({ error: 'Tipo de usuรกrio invรกlido' });
+      return res.status(400).json({ error: 'Tipo de usuário inválido' });
+    }
+
+    // Validações específicas para inquilino
+    if (tipo === 'inquilino') {
+      if (!cpf || !telefone || !rg || !profissao || !rendaMensal) {
+        return res.status(400).json({ error: 'CPF, telefone, RG, profissão e renda mensal são obrigatórios para inquilinos' });
+      }
+
+      // Verificar se CPF já existe
+      const cpfExistente = await prisma.inquilino.findUnique({
+        where: { cpf },
+      });
+
+      if (cpfExistente) {
+        return res.status(400).json({ error: 'CPF já cadastrado' });
+      }
     }
 
     const usuarioExistente = await prisma.usuario.findUnique({
@@ -19,37 +35,78 @@ export const register = async (req, res) => {
     });
 
     if (usuarioExistente) {
-      return res.status(400).json({ error: 'E-mail jรก cadastrado' });
+      return res.status(400).json({ error: 'E-mail já cadastrado' });
     }
 
     const senhaHash = await bcrypt.hash(senha, 10);
 
-    const usuario = await prisma.usuario.create({
-      data: {
-        nome,
-        email,
-        senha: senhaHash,
-        tipo,
-      },
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        tipo: true,
-        createdAt: true,
-      },
-    });
+    let usuario;
+
+    // Se for inquilino, criar Usuario E Inquilino em transação
+    if (tipo === 'inquilino') {
+      const resultado = await prisma.$transaction(async (tx) => {
+        const novoUsuario = await tx.usuario.create({
+          data: {
+            nome,
+            email,
+            senha: senhaHash,
+            tipo,
+          },
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            tipo: true,
+            createdAt: true,
+          },
+        });
+
+        await tx.inquilino.create({
+          data: {
+            nome,
+            cpf,
+            telefone,
+            email,
+            rg,
+            profissao,
+            rendaMensal: parseFloat(rendaMensal),
+            usuarioId: novoUsuario.id,
+          },
+        });
+
+        return novoUsuario;
+      });
+
+      usuario = resultado;
+    } else {
+      // Se for proprietário, criar apenas o Usuario
+      usuario = await prisma.usuario.create({
+        data: {
+          nome,
+          email,
+          senha: senhaHash,
+          tipo,
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          tipo: true,
+          createdAt: true,
+        },
+      });
+    }
 
     const token = generateToken({ id: usuario.id, email: usuario.email, tipo: usuario.tipo });
 
     return res.status(201).json({
-      message: 'Usuรกrio cadastrado com sucesso',
+      message: 'Usuário cadastrado com sucesso',
       usuario,
       token,
     });
   } catch (error) {
     console.error('Erro no registro:', error);
-    return res.status(500).json({ error: 'Erro ao cadastrar usuรกrio' });
+    return res.status(500).json({ error: 'Erro ao cadastrar usuário' });
   }
 };
 

@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
+import logo from '../assets/logo_AlugueFlow.png';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -73,9 +74,11 @@ const Layout = ({ children }) => {
                 </svg>
               </button>
               
-              <h1 className="text-xl md:text-2xl font-bold text-primary-600">
-                AlugueFlow
-              </h1>
+              <img 
+                src={logo} 
+                alt="AlugueFlow" 
+                className="h-20 md:h-27"
+              />
             </div>
             
             <div className="flex items-center space-x-2 md:space-x-4">
@@ -100,7 +103,7 @@ const Layout = ({ children }) => {
         {/* Backdrop Mobile */}
         {mobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden top-16"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
@@ -108,14 +111,15 @@ const Layout = ({ children }) => {
         {/* Sidebar */}
         <aside
           className={`
-            fixed md:static inset-y-0 left-0 z-50
-            w-64 bg-white shadow-lg md:shadow-sm 
+            fixed left-0 top-16 z-50
+            w-64 bg-white shadow-lg
+            h-[calc(100vh-4rem)]
             transform transition-transform duration-300 ease-in-out
             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-            mt-16 md:mt-0 min-h-[calc(100vh-4rem)]
+            overflow-y-auto
           `}
         >
-          <nav className="p-4 space-y-2">
+          <nav className="p-4 space-y-2 pb-6">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
@@ -134,7 +138,7 @@ const Layout = ({ children }) => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 w-full">
+        <main className="flex-1 p-4 md:p-8 w-full md:ml-64">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
