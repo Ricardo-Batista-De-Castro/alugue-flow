@@ -90,7 +90,7 @@ const DashboardProprietario = () => {
                         {contrato.imovel.endereco}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {contrato.inquilino.nome}
+                        {contrato.pessoa.nome}
                       </p>
                     </div>
                     <div className="text-right">

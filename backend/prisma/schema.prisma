@@ -16,7 +16,7 @@ model Usuario {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  inquilino Inquilino?
+  pessoa Pessoa?
 
   @@map("usuario")
 }
@@ -48,7 +48,7 @@ model Imovel {
   @@map("imovel")
 }
 
-model Inquilino {
+model Pessoa {
   id          String   @id @default(uuid())
   nome        String
   cpf         String   @unique
@@ -67,7 +67,7 @@ model Inquilino {
 
   contratos Contrato[]
 
-  @@map("inquilino")
+  @@map("pessoa")
 }
 
 model Contrato {
@@ -84,16 +84,16 @@ model Contrato {
   imovelId    String
   imovel      Imovel     @relation(fields: [imovelId], references: [id])
 
-  inquilinoId String
-  inquilino   Inquilino  @relation(fields: [inquilinoId], references: [id])
+  pessoaId String
+  pessoa   Pessoa  @relation(fields: [pessoaId], references: [id])
 
   pagamentos  Pagamento[]
 
   @@index([imovelId])
-  @@index([inquilinoId])
+  @@index([pessoaId])
   @@index([status])
   @@index([imovelId, status])
-  @@index([inquilinoId, status])
+  @@index([pessoaId, status])
   @@map("contrato")
 }
 

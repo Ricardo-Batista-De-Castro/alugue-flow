@@ -6,7 +6,7 @@ import Register from './pages/Register';
 import DashboardProprietario from './pages/DashboardProprietario';
 import DashboardInquilino from './pages/DashboardInquilino';
 import Imoveis from './pages/Imoveis';
-import Inquilinos from './pages/Inquilinos';
+import Pessoas from './pages/Pessoas';
 import Contratos from './pages/Contratos';
 
 function App() {
@@ -45,10 +45,10 @@ function App() {
           />
           
           <Route
-            path="/inquilinos"
+            path="/pessoas"
             element={
               <ProtectedRoute allowedRoles={['proprietario']}>
-                <Inquilinos />
+                <Pessoas />
               </ProtectedRoute>
             }
           />

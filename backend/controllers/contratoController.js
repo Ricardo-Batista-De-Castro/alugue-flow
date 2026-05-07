@@ -20,7 +20,7 @@ export const getContratos = async (req, res) => {
             estado: true,
           },
         },
-        inquilino: {
+        pessoa: {
           select: {
             id: true,
             nome: true,
@@ -47,7 +47,7 @@ export const getContratoById = async (req, res) => {
       where: { id },
       include: {
         imovel: true,
-        inquilino: true,
+        pessoa: true,
       },
     });
 
@@ -66,7 +66,7 @@ export const createContrato = async (req, res) => {
   try {
     const {
       imovelId,
-      inquilinoId,
+      pessoaId,
       dataInicio,
       dataFim,
       valorAluguel,
@@ -75,14 +75,14 @@ export const createContrato = async (req, res) => {
     } = req.body;
 
     // Validar campos obrigatórios
-    if (!imovelId || !inquilinoId || !dataInicio || !dataFim || !valorAluguel || !diaVencimento) {
+    if (!imovelId || !pessoaId || !dataInicio || !dataFim || !valorAluguel || !diaVencimento) {
       return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos' });
     }
 
     // ✅ OTIMIZADO: Validações em paralelo usando Promise.all
-    const [imovel, inquilino, contratoAtivo] = await Promise.all([
+    const [imovel, pessoa, contratoAtivo] = await Promise.all([
       prisma.imovel.findUnique({ where: { id: imovelId } }),
-      prisma.inquilino.findUnique({ where: { id: inquilinoId } }),
+      prisma.pessoa.findUnique({ where: { id: pessoaId } }),
       prisma.contrato.findFirst({
         where: {
           imovelId,
@@ -96,8 +96,8 @@ export const createContrato = async (req, res) => {
       return res.status(404).json({ error: 'Imóvel não encontrado' });
     }
 
-    if (!inquilino) {
-      return res.status(404).json({ error: 'Inquilino não encontrado' });
+    if (!pessoa) {
+      return res.status(404).json({ error: 'Pessoa não encontrada' });
     }
 
     if (contratoAtivo) {
@@ -124,7 +124,7 @@ export const createContrato = async (req, res) => {
       const novoContrato = await tx.contrato.create({
         data: {
           imovelId,
-          inquilinoId,
+          pessoaId,
           dataInicio: dataInicioDate,
           dataFim: dataFimDate,
           valorAluguel: parseFloat(valorAluguel),
@@ -134,7 +134,7 @@ export const createContrato = async (req, res) => {
         },
         include: {
           imovel: true,
-          inquilino: true,
+          pessoa: true,
         },
       });
 
@@ -204,7 +204,7 @@ export const updateContrato = async (req, res) => {
         data,
         include: {
           imovel: true,
-          inquilino: true,
+          pessoa: true,
         },
       });
 

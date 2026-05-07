@@ -1,9 +1,9 @@
 import prisma from '../config/database.js';
 import bcrypt from 'bcryptjs';
 
-export const getInquilinos = async (req, res) => {
+export const getPessoas = async (req, res) => {
   try {
-    const inquilinos = await prisma.inquilino.findMany({
+    const pessoas = await prisma.pessoa.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         contratos: {
@@ -26,18 +26,18 @@ export const getInquilinos = async (req, res) => {
       },
     });
 
-    return res.status(200).json(inquilinos);
+    return res.status(200).json(pessoas);
   } catch (error) {
-    console.error('Erro ao buscar inquilinos:', error);
-    return res.status(500).json({ error: 'Erro ao buscar inquilinos' });
+    console.error('Erro ao buscar pessoas:', error);
+    return res.status(500).json({ error: 'Erro ao buscar pessoas' });
   }
 };
 
-export const getInquilinoById = async (req, res) => {
+export const getPessoaById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const inquilino = await prisma.inquilino.findUnique({
+    const pessoa = await prisma.pessoa.findUnique({
       where: { id },
       include: {
         contratos: {
@@ -55,18 +55,18 @@ export const getInquilinoById = async (req, res) => {
       },
     });
 
-    if (!inquilino) {
-      return res.status(404).json({ error: 'Inquilino não encontrado' });
+    if (!pessoa) {
+      return res.status(404).json({ error: 'Pessoa não encontrada' });
     }
 
-    return res.status(200).json(inquilino);
+    return res.status(200).json(pessoa);
   } catch (error) {
-    console.error('Erro ao buscar inquilino:', error);
-    return res.status(500).json({ error: 'Erro ao buscar inquilino' });
+    console.error('Erro ao buscar pessoa:', error);
+    return res.status(500).json({ error: 'Erro ao buscar pessoa' });
   }
 };
 
-export const createInquilino = async (req, res) => {
+export const createPessoa = async (req, res) => {
   try {
     const { nome, cpf, rg, telefone, email, profissao, rendaMensal, criarUsuario, senha } = req.body;
 
@@ -76,8 +76,8 @@ export const createInquilino = async (req, res) => {
 
     // ✅ OTIMIZADO: Verificações em paralelo usando Promise.all
     const verificacoesPromises = [
-      prisma.inquilino.findUnique({ where: { cpf } }),
-      prisma.inquilino.findUnique({ where: { email } }),
+      prisma.pessoa.findUnique({ where: { cpf } }),
+      prisma.pessoa.findUnique({ where: { email } }),
     ];
 
     // Só verificar usuário se for criar um
@@ -121,7 +121,7 @@ export const createInquilino = async (req, res) => {
       usuarioId = usuario.id;
     }
 
-    const inquilino = await prisma.inquilino.create({
+    const pessoa = await prisma.pessoa.create({
       data: {
         nome,
         cpf,
@@ -135,44 +135,44 @@ export const createInquilino = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: 'Inquilino cadastrado com sucesso',
-      inquilino,
+      message: 'Pessoa cadastrada com sucesso',
+      pessoa,
     });
   } catch (error) {
-    console.error('Erro ao criar inquilino:', error);
-    return res.status(500).json({ error: 'Erro ao cadastrar inquilino' });
+    console.error('Erro ao criar pessoa:', error);
+    return res.status(500).json({ error: 'Erro ao cadastrar pessoa' });
   }
 };
 
-export const updateInquilino = async (req, res) => {
+export const updatePessoa = async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, cpf, rg, telefone, email, profissao, rendaMensal } = req.body;
 
-    const inquilinoExistente = await prisma.inquilino.findUnique({
+    const pessoaExistente = await prisma.pessoa.findUnique({
       where: { id },
     });
 
-    if (!inquilinoExistente) {
-      return res.status(404).json({ error: 'Inquilino não encontrado' });
+    if (!pessoaExistente) {
+      return res.status(404).json({ error: 'Pessoa não encontrada' });
     }
 
     // ✅ OTIMIZADO: Verificações em paralelo
     const verificacoesPromises = [];
     
     // Verificar CPF duplicado apenas se mudou
-    if (cpf && cpf !== inquilinoExistente.cpf) {
+    if (cpf && cpf !== pessoaExistente.cpf) {
       verificacoesPromises.push(
-        prisma.inquilino.findUnique({ where: { cpf } })
+        prisma.pessoa.findUnique({ where: { cpf } })
       );
     } else {
       verificacoesPromises.push(Promise.resolve(null));
     }
 
     // Verificar e-mail duplicado apenas se mudou
-    if (email && email !== inquilinoExistente.email) {
+    if (email && email !== pessoaExistente.email) {
       verificacoesPromises.push(
-        prisma.inquilino.findUnique({ where: { email } })
+        prisma.pessoa.findUnique({ where: { email } })
       );
     } else {
       verificacoesPromises.push(Promise.resolve(null));
@@ -188,7 +188,7 @@ export const updateInquilino = async (req, res) => {
       return res.status(400).json({ error: 'E-mail já cadastrado' });
     }
 
-    const inquilino = await prisma.inquilino.update({
+    const pessoa = await prisma.pessoa.update({
       where: { id },
       data: {
         nome,
@@ -202,20 +202,20 @@ export const updateInquilino = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: 'Inquilino atualizado com sucesso',
-      inquilino,
+      message: 'Pessoa atualizada com sucesso',
+      pessoa,
     });
   } catch (error) {
-    console.error('Erro ao atualizar inquilino:', error);
-    return res.status(500).json({ error: 'Erro ao atualizar inquilino' });
+    console.error('Erro ao atualizar pessoa:', error);
+    return res.status(500).json({ error: 'Erro ao atualizar pessoa' });
   }
 };
 
-export const deleteInquilino = async (req, res) => {
+export const deletePessoa = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const inquilino = await prisma.inquilino.findUnique({
+    const pessoa = await prisma.pessoa.findUnique({
       where: { id },
       include: {
         contratos: {
@@ -224,32 +224,32 @@ export const deleteInquilino = async (req, res) => {
       },
     });
 
-    if (!inquilino) {
-      return res.status(404).json({ error: 'Inquilino não encontrado' });
+    if (!pessoa) {
+      return res.status(404).json({ error: 'Pessoa não encontrada' });
     }
 
-    if (inquilino.contratos.length > 0) {
-      return res.status(400).json({ error: 'Não é possível excluir inquilino com contratos ativos' });
+    if (pessoa.contratos.length > 0) {
+      return res.status(400).json({ error: 'Não é possível excluir pessoa com contratos ativos' });
     }
 
     // Se tiver usuário associado, excluir também em uma transação
     await prisma.$transaction(async (tx) => {
       // Se tiver usuário associado, excluir primeiro
-      if (inquilino.usuarioId) {
+      if (pessoa.usuarioId) {
         await tx.usuario.delete({
-          where: { id: inquilino.usuarioId },
+          where: { id: pessoa.usuarioId },
         });
       }
 
-      // Excluir inquilino
-      await tx.inquilino.delete({
+      // Excluir pessoa
+      await tx.pessoa.delete({
         where: { id },
       });
     });
 
-    return res.status(200).json({ message: 'Inquilino excluído com sucesso' });
+    return res.status(200).json({ message: 'Pessoa excluída com sucesso' });
   } catch (error) {
-    console.error('Erro ao excluir inquilino:', error);
-    return res.status(500).json({ error: 'Erro ao excluir inquilino' });
+    console.error('Erro ao excluir pessoa:', error);
+    return res.status(500).json({ error: 'Erro ao excluir pessoa' });
   }
 };

@@ -17,7 +17,7 @@ export const getImoveis = async (req, res) => {
           contratos: {
             where: { status: 'ativo' },
             include: {
-              inquilino: {
+              pessoa: {
                 select: {
                   nome: true,
                   telefone: true,
@@ -54,7 +54,7 @@ export const getImovelById = async (req, res) => {
       include: {
         contratos: {
           include: {
-            inquilino: true,
+            pessoa: true,
           },
         },
       },

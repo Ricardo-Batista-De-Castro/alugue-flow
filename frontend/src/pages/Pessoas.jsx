@@ -1,131 +1,45 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Layout from '../components/Layout';
-import { useContratos, useCreateContrato, useUpdateContrato, useDeleteContrato } from '../hooks/useContratos';
-import { useImoveis } from '../hooks/useImoveis';
-import { usePessoas } from '../hooks/usePessoas';
+import { usePessoas, useCreatePessoa, useUpdatePessoa, useDeletePessoa } from '../hooks/usePessoas';
 
-const Contratos = () => {
-  const { data: contratos = [], isLoading: isLoadingContratos, error: errorContratos } = useContratos();
-  const { data: imoveis = [], isLoading: isLoadingImoveis } = useImoveis();
-  const { data: pessoas = [], isLoading: isLoadingPessoas } = usePessoas();
-  
-  const createContrato = useCreateContrato();
-  const updateContrato = useUpdateContrato();
-  const deleteContrato = useDeleteContrato();
+const Pessoas = () => {
+  const { data: pessoas = [], isLoading, error } = usePessoas();
+  const createPessoa = useCreatePessoa();
+  const updatePessoa = useUpdatePessoa();
+  const deletePessoa = useDeletePessoa();
 
   const [showModal, setShowModal] = useState(false);
-  const [editingContrato, setEditingContrato] = useState(null);
+  const [editingPessoa, setEditingPessoa] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    pessoa: '',
-    imovel: '',
-    status: '',
-  });
-  const [appliedFilters, setAppliedFilters] = useState({
-    pessoa: '',
-    imovel: '',
-    status: '',
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [isSearching, setIsSearching] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [formData, setFormData] = useState({
-    imovelId: '',
-    pessoaId: '',
-    dataInicio: '',
-    dataFim: '',
-    valorAluguel: '',
-    diaVencimento: '',
-    observacoes: '',
-    status: 'ativo',
+    nome: '',
+    email: '',
+    telefone: '',
+    cpf: '',
+    rg: '',
+    profissao: '',
+    rendaMensal: '',
   });
 
-  const isLoading = isLoadingContratos || isLoadingImoveis || isLoadingPessoas;
+  const [filters, setFilters] = useState({
+    nome: '',
+    email: '',
+    cpf: '',
+    profissao: '',
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingContrato) {
-        await updateContrato.mutateAsync({ id: editingContrato.id, data: formData });
-      } else {
-        await createContrato.mutateAsync(formData);
-      }
-      closeModal();
-    } catch (error) {
-      console.error('Erro ao salvar contrato:', error);
-      alert('Erro ao salvar contrato');
-    }
-  };
+  const [appliedFilters, setAppliedFilters] = useState({
+    nome: '',
+    email: '',
+    cpf: '',
+    profissao: '',
+  });
 
-  const handleDelete = async (id) => {
-    if (!confirm('Deseja realmente excluir este contrato?')) return;
-    try {
-      await deleteContrato.mutateAsync(id);
-    } catch (error) {
-      console.error('Erro ao excluir contrato:', error);
-      alert('Erro ao excluir contrato');
-    }
-  };
-
-  const handleDeleteSelected = async () => {
-    if (!selectedRow) {
-      alert('Selecione um contrato para excluir');
-      return;
-    }
-    await handleDelete(selectedRow.id);
-    setSelectedRow(null);
-  };
-
-  const handleEdit = () => {
-    if (!selectedRow) {
-      alert('Selecione um contrato para editar');
-      return;
-    }
-    openModal(selectedRow);
-  };
-
-  const openModal = (contrato = null) => {
-    if (contrato) {
-      setEditingContrato(contrato);
-      setFormData({
-        imovelId: contrato.imovelId,
-        pessoaId: contrato.pessoaId,
-        dataInicio: contrato.dataInicio.split('T')[0],
-        dataFim: contrato.dataFim.split('T')[0],
-        valorAluguel: contrato.valorAluguel,
-        diaVencimento: contrato.diaVencimento,
-        observacoes: contrato.observacoes || '',
-        status: contrato.status,
-      });
-    } else {
-      setEditingContrato(null);
-      setFormData({
-        imovelId: '',
-        pessoaId: '',
-        dataInicio: '',
-        dataFim: '',
-        valorAluguel: '',
-        diaVencimento: '',
-        observacoes: '',
-        status: 'ativo',
-      });
-    }
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setEditingContrato(null);
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const handleFilterChange = (e) => {
     setFilters({
@@ -147,41 +61,117 @@ const Contratos = () => {
     setIsClearing(true);
     setTimeout(() => {
       setFilters({
-        pessoa: '',
-        imovel: '',
-        status: '',
+        nome: '',
+        email: '',
+        cpf: '',
+        profissao: '',
       });
       setAppliedFilters({
-        pessoa: '',
-        imovel: '',
-        status: '',
+        nome: '',
+        email: '',
+        cpf: '',
+        profissao: '',
       });
       setCurrentPage(1);
       setIsClearing(false);
     }, 300);
   };
 
-  const filteredContratos = contratos.filter((contrato) => {
-    return (
-      (!appliedFilters.pessoa || contrato.pessoa.nome.toLowerCase().includes(appliedFilters.pessoa.toLowerCase())) &&
-      (!appliedFilters.imovel || contrato.imovel.endereco.toLowerCase().includes(appliedFilters.imovel.toLowerCase())) &&
-      (!appliedFilters.status || contrato.status === appliedFilters.status)
-    );
-  });
+  const filteredPessoas = useMemo(() => {
+    return pessoas.filter((pessoa) => {
+      const matchNome = !appliedFilters.nome || pessoa.nome.toLowerCase().includes(appliedFilters.nome.toLowerCase());
+      const matchEmail = !appliedFilters.email || pessoa.email.toLowerCase().includes(appliedFilters.email.toLowerCase());
+      const matchCpf = !appliedFilters.cpf || pessoa.cpf.includes(appliedFilters.cpf);
+      const matchProfissao = !appliedFilters.profissao || (pessoa.profissao && pessoa.profissao.toLowerCase().includes(appliedFilters.profissao.toLowerCase()));
+      
+      return matchNome && matchEmail && matchCpf && matchProfissao;
+    });
+  }, [pessoas, appliedFilters]);
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredContratos.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredPessoas.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedContratos = filteredContratos.slice(startIndex, endIndex);
+  const paginatedPessoas = filteredPessoas.slice(startIndex, endIndex);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingPessoa) {
+        await updatePessoa.mutateAsync({ id: editingPessoa.id, data: formData });
+      } else {
+        await createPessoa.mutateAsync(formData);
+      }
+      closeModal();
+    } catch (error) {
+      console.error('Erro ao salvar pessoa:', error);
+      alert('Erro ao salvar pessoa');
+    }
   };
 
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
+  const handleDelete = async (id) => {
+    if (!confirm('Deseja realmente excluir esta pessoa?')) return;
+    try {
+      await deletePessoa.mutateAsync(id);
+    } catch (error) {
+      console.error('Erro ao excluir pessoa:', error);
+      alert('Erro ao excluir pessoa');
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!selectedRow) {
+      alert('Selecione uma pessoa para excluir');
+      return;
+    }
+    await handleDelete(selectedRow.id);
+    setSelectedRow(null);
+  };
+
+  const handleEdit = () => {
+    if (!selectedRow) {
+      alert('Selecione uma pessoa para editar');
+      return;
+    }
+    openModal(selectedRow);
+  };
+
+  const openModal = (pessoa = null) => {
+    if (pessoa) {
+      setEditingPessoa(pessoa);
+      setFormData({
+        nome: pessoa.nome,
+        email: pessoa.email,
+        telefone: pessoa.telefone,
+        cpf: pessoa.cpf,
+        rg: pessoa.rg,
+        profissao: pessoa.profissao,
+        rendaMensal: pessoa.rendaMensal,
+      });
+    } else {
+      setEditingPessoa(null);
+      setFormData({
+        nome: '',
+        email: '',
+        telefone: '',
+        cpf: '',
+        rg: '',
+        profissao: '',
+        rendaMensal: '',
+      });
+    }
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingPessoa(null);
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const formatCurrency = (value) => {
@@ -191,8 +181,13 @@ const Contratos = () => {
     }).format(value);
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('pt-BR');
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
   };
 
   if (isLoading) {
@@ -205,11 +200,11 @@ const Contratos = () => {
     );
   }
 
-  if (errorContratos) {
+  if (error) {
     return (
       <Layout>
         <div className="text-center py-12">
-          <p className="text-red-600 text-lg">Erro ao carregar contratos. Tente novamente.</p>
+          <p className="text-red-600 text-lg">Erro ao carregar pessoas. Tente novamente.</p>
         </div>
       </Layout>
     );
@@ -219,9 +214,9 @@ const Contratos = () => {
     <Layout>
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Contratos</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Pessoas</h1>
           <button onClick={() => openModal()} className="btn-primary md:hidden">
-            Novo Contrato
+            Nova Pessoa
           </button>
         </div>
 
@@ -244,43 +239,52 @@ const Contratos = () => {
           {showFilters && (
             <div className="px-4 py-4">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                <div className="md:col-span-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pessoa</label>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
                   <input 
                     type="text" 
-                    name="pessoa" 
-                    value={filters.pessoa} 
+                    name="nome" 
+                    value={filters.nome} 
                     onChange={handleFilterChange} 
                     className="input-field py-1.5 text-sm" 
-                    placeholder="Buscar por pessoa"
-                  />
-                </div>
-                
-                <div className="md:col-span-5">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Imóvel</label>
-                  <input 
-                    type="text" 
-                    name="imovel" 
-                    value={filters.imovel} 
-                    onChange={handleFilterChange} 
-                    className="input-field py-1.5 text-sm" 
-                    placeholder="Buscar por endereço do imóvel"
+                    placeholder="Buscar por nome"
                   />
                 </div>
                 
                 <div className="md:col-span-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select 
-                    name="status" 
-                    value={filters.status} 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input 
+                    type="text" 
+                    name="email" 
+                    value={filters.email} 
                     onChange={handleFilterChange} 
-                    className="input-field py-1.5 text-sm"
-                  >
-                    <option value="">Todos</option>
-                    <option value="ativo">Ativo</option>
-                    <option value="encerrado">Encerrado</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
+                    className="input-field py-1.5 text-sm" 
+                    placeholder="Buscar por email"
+                  />
+                </div>
+                
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
+                  <input 
+                    type="text" 
+                    name="cpf" 
+                    value={filters.cpf} 
+                    onChange={handleFilterChange} 
+                    className="input-field py-1.5 text-sm" 
+                    placeholder="Buscar por CPF"
+                  />
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Profissão</label>
+                  <input 
+                    type="text" 
+                    name="profissao" 
+                    value={filters.profissao} 
+                    onChange={handleFilterChange} 
+                    className="input-field py-1.5 text-sm" 
+                    placeholder="Buscar por profissão"
+                  />
                 </div>
               </div>
             </div>
@@ -330,51 +334,38 @@ const Contratos = () => {
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-primary-gradient">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Imóvel</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Pessoa</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Início</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Fim</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Valor</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Vencimento</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Situação</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Nome</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Email</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Telefone</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">CPF</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Profissão</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Renda Mensal</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedContratos.length === 0 ? (
+              {paginatedPessoas.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
-                    Nenhum contrato encontrado
+                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                    Nenhuma pessoa encontrada
                   </td>
                 </tr>
               ) : (
-                paginatedContratos.map((contrato) => (
+                paginatedPessoas.map((pessoa) => (
                   <tr
-                    key={contrato.id}
-                    onClick={() => setSelectedRow(contrato)}
+                    key={pessoa.id}
+                    onClick={() => setSelectedRow(pessoa)}
                     className={`hover:bg-gray-50 cursor-pointer transition-all duration-200 ${
-                      selectedRow?.id === contrato.id 
+                      selectedRow?.id === pessoa.id 
                         ? 'bg-primary-gradient-soft border-l-4 border-l-primary-600' 
                         : 'border-l-4 border-l-transparent'
                     }`}
                   >
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      <div className="font-medium">{contrato.imovel.endereco}</div>
-                      <div className="text-xs text-gray-500">{contrato.imovel.cidade} - {contrato.imovel.estado}</div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{contrato.pessoa.nome}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{formatDate(contrato.dataInicio)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{formatDate(contrato.dataFim)}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{formatCurrency(contrato.valorAluguel)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">Dia {contrato.diaVencimento}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        contrato.status === 'ativo' ? 'bg-green-100 text-green-800' :
-                        contrato.status === 'encerrado' ? 'bg-gray-100 text-gray-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {contrato.status.charAt(0).toUpperCase() + contrato.status.slice(1)}
-                      </span>
-                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{pessoa.nome}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{pessoa.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{pessoa.telefone}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{pessoa.cpf}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{pessoa.profissao || '-'}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{formatCurrency(pessoa.rendaMensal)}</td>
                   </tr>
                 ))
               )}
@@ -382,15 +373,14 @@ const Contratos = () => {
           </table>
         </div>
 
-        <div className="hidden md:flex justify-between items-center mt-4 bg-white px-4 py-3 rounded-lg shadow-sm border border-gray-200 w-full">
-          {/* Botões de ação à esquerda */}
-          <div className="flex gap-3">
+        <div className="hidden md:flex justify-between items-center mt-4 gap-4">
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => openModal()}
-              disabled={createContrato.isPending}
+              disabled={createPessoa.isPending}
               className="btn-primary inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {createContrato.isPending ? (
+              {createPessoa.isPending ? (
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
@@ -404,10 +394,10 @@ const Contratos = () => {
             </button>
             <button 
               onClick={handleEdit}
-              disabled={!selectedRow || updateContrato.isPending}
+              disabled={!selectedRow || updatePessoa.isPending}
               className="btn-secondary inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {updateContrato.isPending ? (
+              {updatePessoa.isPending ? (
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
@@ -421,10 +411,10 @@ const Contratos = () => {
             </button>
             <button 
               onClick={handleDeleteSelected}
-              disabled={!selectedRow || deleteContrato.isPending}
+              disabled={!selectedRow || deletePessoa.isPending}
               className="btn-danger inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {deleteContrato.isPending ? (
+              {deletePessoa.isPending ? (
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
@@ -438,10 +428,9 @@ const Contratos = () => {
             </button>
           </div>
 
-          {/* Paginação à direita */}
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-700">
-              Total: {filteredContratos.length}
+              Total: {filteredPessoas.length}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-700">Itens por página:</span>
@@ -497,49 +486,44 @@ const Contratos = () => {
         </div>
 
         <div className="md:hidden space-y-4">
-          {paginatedContratos.length === 0 ? (
+          {paginatedPessoas.length === 0 ? (
             <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
-              Nenhum contrato encontrado
+              Nenhuma pessoa encontrada
             </div>
           ) : (
-            paginatedContratos.map((contrato) => (
-              <div key={contrato.id} className="bg-white p-4 rounded-lg shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{contrato.imovel.endereco}</h3>
-                    <p className="text-sm text-gray-500">{contrato.imovel.cidade} - {contrato.imovel.estado}</p>
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    contrato.status === 'ativo' ? 'bg-green-100 text-green-800' :
-                    contrato.status === 'encerrado' ? 'bg-gray-100 text-gray-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {contrato.status.charAt(0).toUpperCase() + contrato.status.slice(1)}
-                  </span>
+            paginatedPessoas.map((pessoa) => (
+              <div key={pessoa.id} className="bg-white p-4 rounded-lg shadow">
+                <div className="mb-3">
+                  <h3 className="font-semibold text-gray-900">{pessoa.nome}</h3>
+                  <p className="text-sm text-gray-500">{pessoa.email}</p>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Pessoa:</span>
-                    <span className="text-gray-900 font-medium">{contrato.pessoa.nome}</span>
+                    <span className="text-gray-600">Telefone:</span>
+                    <span className="text-gray-900">{pessoa.telefone}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Período:</span>
-                    <span className="text-gray-900">{formatDate(contrato.dataInicio)} - {formatDate(contrato.dataFim)}</span>
+                    <span className="text-gray-600">CPF:</span>
+                    <span className="text-gray-900">{pessoa.cpf}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Valor:</span>
-                    <span className="text-gray-900 font-semibold">{formatCurrency(contrato.valorAluguel)}</span>
+                    <span className="text-gray-600">RG:</span>
+                    <span className="text-gray-900">{pessoa.rg}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Vencimento:</span>
-                    <span className="text-gray-900">Dia {contrato.diaVencimento}</span>
+                    <span className="text-gray-600">Profissão:</span>
+                    <span className="text-gray-900">{pessoa.profissao || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Renda:</span>
+                    <span className="text-gray-900 font-semibold">{formatCurrency(pessoa.rendaMensal)}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => openModal(contrato)} className="btn-secondary flex-1 text-sm">
+                  <button onClick={() => openModal(pessoa)} className="btn-secondary flex-1 text-sm">
                     Editar
                   </button>
-                  <button onClick={() => handleDelete(contrato.id)} className="btn-danger flex-1 text-sm">
+                  <button onClick={() => handleDelete(pessoa.id)} className="btn-danger flex-1 text-sm">
                     Excluir
                   </button>
                 </div>
@@ -550,10 +534,10 @@ const Contratos = () => {
 
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  {editingContrato ? 'Editar Contrato' : 'Novo Contrato'}
+                  {editingPessoa ? 'Editar Pessoa' : 'Nova Pessoa'}
                 </h2>
                 <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -565,47 +549,11 @@ const Contratos = () => {
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="label-field">Imóvel</label>
-                    <select
-                      name="imovelId"
-                      value={formData.imovelId}
-                      onChange={handleChange}
-                      className="input-field"
-                      required
-                    >
-                      <option value="">Selecione um imóvel</option>
-                      {imoveis.map((imovel) => (
-                        <option key={imovel.id} value={imovel.id}>
-                          {imovel.endereco} - {imovel.cidade}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="label-field">Pessoa</label>
-                    <select
-                      name="pessoaId"
-                      value={formData.pessoaId}
-                      onChange={handleChange}
-                      className="input-field"
-                      required
-                    >
-                      <option value="">Selecione uma pessoa</option>
-                      {pessoas.map((pessoa) => (
-                        <option key={pessoa.id} value={pessoa.id}>
-                          {pessoa.nome}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="label-field">Data de Início</label>
+                    <label className="label-field">Nome Completo</label>
                     <input
-                      type="date"
-                      name="dataInicio"
-                      value={formData.dataInicio}
+                      type="text"
+                      name="nome"
+                      value={formData.nome}
                       onChange={handleChange}
                       className="input-field"
                       required
@@ -613,11 +561,11 @@ const Contratos = () => {
                   </div>
 
                   <div>
-                    <label className="label-field">Data de Término</label>
+                    <label className="label-field">Email</label>
                     <input
-                      type="date"
-                      name="dataFim"
-                      value={formData.dataFim}
+                      type="email"
+                      name="email"
+                      value={formData.email}
                       onChange={handleChange}
                       className="input-field"
                       required
@@ -625,11 +573,58 @@ const Contratos = () => {
                   </div>
 
                   <div>
-                    <label className="label-field">Valor do Aluguel</label>
+                    <label className="label-field">Telefone</label>
+                    <input
+                      type="text"
+                      name="telefone"
+                      value={formData.telefone}
+                      onChange={handleChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label-field">CPF</label>
+                    <input
+                      type="text"
+                      name="cpf"
+                      value={formData.cpf}
+                      onChange={handleChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label-field">RG</label>
+                    <input
+                      type="text"
+                      name="rg"
+                      value={formData.rg}
+                      onChange={handleChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label-field">Profissão</label>
+                    <input
+                      type="text"
+                      name="profissao"
+                      value={formData.profissao}
+                      onChange={handleChange}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="label-field">Renda Mensal</label>
                     <input
                       type="number"
-                      name="valorAluguel"
-                      value={formData.valorAluguel}
+                      name="rendaMensal"
+                      value={formData.rendaMensal}
                       onChange={handleChange}
                       className="input-field"
                       step="0.01"
@@ -637,55 +632,15 @@ const Contratos = () => {
                       required
                     />
                   </div>
-
-                  <div>
-                    <label className="label-field">Dia de Vencimento</label>
-                    <input
-                      type="number"
-                      name="diaVencimento"
-                      value={formData.diaVencimento}
-                      onChange={handleChange}
-                      className="input-field"
-                      min="1"
-                      max="31"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="label-field">Status</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="input-field"
-                      required
-                    >
-                      <option value="ativo">Ativo</option>
-                      <option value="encerrado">Encerrado</option>
-                      <option value="cancelado">Cancelado</option>
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="label-field">Observações</label>
-                    <textarea
-                      name="observacoes"
-                      value={formData.observacoes}
-                      onChange={handleChange}
-                      className="input-field"
-                      rows="3"
-                    ></textarea>
-                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
                   <button
                     type="submit"
-                    disabled={createContrato.isPending || updateContrato.isPending}
+                    disabled={createPessoa.isPending || updatePessoa.isPending}
                     className="btn-primary flex-1 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    {createContrato.isPending || updateContrato.isPending ? (
+                    {createPessoa.isPending || updatePessoa.isPending ? (
                       <span className="flex items-center justify-center gap-2">
                         <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
@@ -694,7 +649,7 @@ const Contratos = () => {
                         Salvando...
                       </span>
                     ) : (
-                      editingContrato ? 'Atualizar' : 'Criar'
+                      editingPessoa ? 'Atualizar' : 'Criar'
                     )}
                   </button>
                   <button
@@ -714,4 +669,4 @@ const Contratos = () => {
   );
 };
 
-export default Contratos;
+export default Pessoas;

@@ -64,15 +64,15 @@ export const authorizeInquilino = async (req, res, next) => {
 
   // Se for inquilino, verificar se está acessando apenas seus próprios dados
   if (req.user.tipo === 'inquilino') {
-    const inquilino = await prisma.inquilino.findFirst({
+    const pessoa = await prisma.pessoa.findFirst({
       where: { usuarioId: req.user.id },
     });
 
-    if (!inquilino) {
-      return res.status(403).json({ error: 'Inquilino não encontrado' });
+    if (!pessoa) {
+      return res.status(403).json({ error: 'Pessoa não encontrada' });
     }
 
-    req.inquilino = inquilino;
+    req.pessoa = pessoa;
     return next();
   }
 

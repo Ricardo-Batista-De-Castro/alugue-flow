@@ -11,7 +11,7 @@ const Imoveis = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingImovel, setEditingImovel] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     cidade: '',
     estado: '',
@@ -26,6 +26,8 @@ const Imoveis = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     endereco: '',
@@ -149,24 +151,32 @@ const Imoveis = () => {
   };
 
   const handleSearch = () => {
-    setAppliedFilters(filters);
-    setCurrentPage(1);
+    setIsSearching(true);
+    setTimeout(() => {
+      setAppliedFilters(filters);
+      setCurrentPage(1);
+      setIsSearching(false);
+    }, 300);
   };
 
   const clearFilters = () => {
-    setFilters({
-      cidade: '',
-      estado: '',
-      tipo: '',
-      status: '',
-    });
-    setAppliedFilters({
-      cidade: '',
-      estado: '',
-      tipo: '',
-      status: '',
-    });
-    setCurrentPage(1);
+    setIsClearing(true);
+    setTimeout(() => {
+      setFilters({
+        cidade: '',
+        estado: '',
+        tipo: '',
+        status: '',
+      });
+      setAppliedFilters({
+        cidade: '',
+        estado: '',
+        tipo: '',
+        status: '',
+      });
+      setCurrentPage(1);
+      setIsClearing(false);
+    }, 300);
   };
 
   const filteredImoveis = imoveis.filter((imovel) => {
@@ -230,14 +240,14 @@ const Imoveis = () => {
           </button>
         </div>
 
-        <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+        <div className="hidden md:block bg-white rounded-lg shadow-md border-l-4 border-primary-600 overflow-hidden mb-4">
           <div 
             onClick={() => setShowFilters(!showFilters)}
-            className="bg-primary-600 px-4 py-3 flex justify-between items-center cursor-pointer hover:bg-primary-700 transition-colors"
+            className="bg-gray-50 py-3 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors"
           >
-            <h2 className="text-white font-semibold text-sm tracking-wide uppercase">Filtros</h2>
+            <h2 className="text-gray-700 font-semibold text-sm tracking-wide uppercase px-4">Filtros</h2>
             <svg 
-              className={`w-5 h-5 text-white transition-transform duration-300 ${showFilters ? 'rotate-180' : ''}`} 
+              className={`w-5 h-5 text-gray-600 transition-transform duration-300 mr-4 ${showFilters ? 'rotate-180' : ''}`} 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -247,40 +257,40 @@ const Imoveis = () => {
           </div>
           
           {showFilters && (
-            <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
+            <div className="px-4 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div className="md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
                   <input 
                     type="text" 
                     name="cidade" 
                     value={filters.cidade} 
                     onChange={handleFilterChange} 
-                    className="input-field" 
+                    className="input-field py-1.5 text-sm" 
                     placeholder="Buscar por cidade"
                   />
                 </div>
                 
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                   <input 
                     type="text" 
                     name="estado" 
                     value={filters.estado} 
                     onChange={handleFilterChange} 
-                    className="input-field" 
+                    className="input-field py-1.5 text-sm" 
                     placeholder="Ex: SP"
                     maxLength="2"
                   />
                 </div>
                 
-                <div>
+                <div className="md:col-span-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                   <select 
                     name="tipo" 
                     value={filters.tipo} 
                     onChange={handleFilterChange} 
-                    className="input-field"
+                    className="input-field py-1.5 text-sm"
                   >
                     <option value="">Todos</option>
                     <option value="apartamento">Apartamento</option>
@@ -291,13 +301,13 @@ const Imoveis = () => {
                   </select>
                 </div>
                 
-                <div>
+                <div className="md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                   <select 
                     name="status" 
                     value={filters.status} 
                     onChange={handleFilterChange} 
-                    className="input-field"
+                    className="input-field py-1.5 text-sm"
                   >
                     <option value="">Todos</option>
                     <option value="disponivel">Disponível</option>
@@ -313,35 +323,54 @@ const Imoveis = () => {
           <div className="hidden md:flex gap-3 mb-4">
             <button 
               onClick={handleSearch}
-              className="btn-primary inline-flex items-center gap-2"
+              disabled={isSearching}
+              className="btn-primary inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              {isSearching ? (
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              )}
               Pesquisar
             </button>
             <button 
               onClick={clearFilters}
-              className="btn-secondary"
+              disabled={isClearing}
+              className="btn-secondary inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
+              {isClearing ? (
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
               Limpar
             </button>
           </div>
         )}
 
-        <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+        <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-transparent overflow-x-auto">
           <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-primary-600">
+            <thead className="bg-primary-gradient">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Nome</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Endereço</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Cidade</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">UF</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Tipo</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Quartos</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Área</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Valor</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Situação</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Nome</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Endereço</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Cidade</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">UF</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Tipo</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Quartos</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Área</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Valor</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-white uppercase">Situação</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -349,17 +378,17 @@ const Imoveis = () => {
                 <tr
                   key={imovel.id}
                   onClick={() => setSelectedRow(imovel)}
-                  className={`cursor-pointer ${selectedRow?.id === imovel.id ? 'bg-primary-50 border-l-4 border-primary-600' : 'hover:bg-gray-50'}`}
+                  className={`cursor-pointer transition-all duration-200 ${selectedRow?.id === imovel.id ? 'bg-primary-gradient-soft' : 'hover:bg-gray-50'}`}
                 >
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{imovel.nome || 'Sem nome'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{imovel.endereco}, {imovel.numero}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{imovel.cidade}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{imovel.estado}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700 capitalize">{imovel.tipo}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{imovel.quartos}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{imovel.area} m²</td>
-                  <td className="px-4 py-3 text-sm font-medium text-primary-600">{formatCurrency(imovel.valorAluguel)}</td>
-                  <td className="px-4 py-3">
+                  <td className={`px-4 py-2 text-sm font-medium text-gray-900 ${selectedRow?.id === imovel.id ? 'border-l-4 border-primary-600' : ''}`}>{imovel.nome || 'Sem nome'}</td>
+                  <td className="px-4 py-2 text-sm text-gray-500">{imovel.endereco}, {imovel.numero}</td>
+                  <td className="px-4 py-2 text-sm text-gray-700">{imovel.cidade}</td>
+                  <td className="px-4 py-2 text-sm text-gray-700">{imovel.estado}</td>
+                  <td className="px-4 py-2 text-sm text-gray-700 capitalize">{imovel.tipo}</td>
+                  <td className="px-4 py-2 text-sm text-gray-700">{imovel.quartos}</td>
+                  <td className="px-4 py-2 text-sm text-gray-700">{imovel.area} m²</td>
+                  <td className="px-4 py-2 text-sm font-medium text-primary-600">{formatCurrency(imovel.valorAluguel)}</td>
+                  <td className="px-4 py-2">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${imovel.status === 'disponivel' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                       {imovel.status === 'disponivel' ? 'Disponível' : 'Alugado'}
                     </span>
@@ -394,58 +423,78 @@ const Imoveis = () => {
             </button>
             <button 
               onClick={handleDeleteSelected}
-              disabled={!selectedRow}
-              className="btn-danger inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!selectedRow || deleteImovel.isPending}
+              className="btn-danger inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              {deleteImovel.isPending ? (
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              )}
               Excluir
             </button>
           </div>
 
           {/* Paginação à direita */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-700 font-medium">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-700">
               Total: {filteredImoveis.length}
             </span>
-            <select 
-              value={itemsPerPage} 
-              onChange={handleItemsPerPageChange}
-              className="input-field py-1 px-2 w-16"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Anterior
-            </button>
-            {[...Array(totalPages)].map((_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === index + 1
-                    ? 'bg-primary-600 text-white'
-                    : 'border border-gray-300 hover:bg-gray-50'
-                }`}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">Itens por página:</span>
+              <select 
+                value={itemsPerPage} 
+                onChange={handleItemsPerPageChange}
+                className="input-field py-1 px-2 text-sm w-20"
               >
-                {index + 1}
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Anterior
               </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Próxima
-            </button>
+              {[...Array(totalPages)].map((_, index) => {
+                const page = index + 1;
+                if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 text-sm border rounded-md transition-colors ${
+                        currentPage === page
+                          ? 'bg-primary-600 text-white border-primary-600'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return <span key={page} className="px-2 py-1 text-sm text-gray-500">...</span>;
+                }
+                return null;
+              })}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Próxima
+              </button>
+            </div>
           </div>
         </div>
 
@@ -485,14 +534,28 @@ const Imoveis = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => openModal(imovel)}
-                  className="flex-1 btn-secondary text-sm py-2"
+                  className="flex-1 btn-secondary text-sm py-2 inline-flex items-center justify-center gap-2"
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
                   Editar
                 </button>
                 <button
                   onClick={() => handleDelete(imovel.id)}
-                  className="flex-1 btn-danger text-sm py-2"
+                  disabled={deleteImovel.isPending}
+                  className="flex-1 btn-danger text-sm py-2 inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
+                  {deleteImovel.isPending ? (
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  )}
                   Excluir
                 </button>
               </div>
@@ -757,10 +820,20 @@ const Imoveis = () => {
                   </button>
                   <button
                     type="submit"
-                    className="btn-primary"
                     disabled={createImovel.isPending || updateImovel.isPending}
+                    className="btn-primary inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    {createImovel.isPending || updateImovel.isPending ? 'Salvando...' : 'Salvar'}
+                    {(createImovel.isPending || updateImovel.isPending) ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        </svg>
+                        Salvando...
+                      </>
+                    ) : (
+                      'Salvar'
+                    )}
                   </button>
                 </div>
               </form>

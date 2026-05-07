@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import imovelRoutes from './routes/imovel.routes.js';
-import inquilinoRoutes from './routes/inquilino.routes.js';
+import pessoaRoutes from './routes/pessoa.routes.js';
 import contratoRoutes from './routes/contrato.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 
@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/imoveis', imovelRoutes);
-app.use('/api/inquilinos', inquilinoRoutes);
+app.use('/api/pessoas', pessoaRoutes);
 app.use('/api/contratos', contratoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 

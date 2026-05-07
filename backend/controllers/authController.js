@@ -21,7 +21,7 @@ export const register = async (req, res) => {
       }
 
       // Verificar se CPF já existe
-      const cpfExistente = await prisma.inquilino.findUnique({
+      const cpfExistente = await prisma.pessoa.findUnique({
         where: { cpf },
       });
 
@@ -61,7 +61,7 @@ export const register = async (req, res) => {
           },
         });
 
-        await tx.inquilino.create({
+        await tx.pessoa.create({
           data: {
             nome,
             cpf,
@@ -157,7 +157,7 @@ export const me = async (req, res) => {
         email: true,
         tipo: true,
         createdAt: true,
-        inquilino: {
+        pessoa: {
           select: {
             id: true,
             cpf: true,

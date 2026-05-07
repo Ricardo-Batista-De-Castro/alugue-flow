@@ -9,19 +9,19 @@ export const getDashboard = async (req, res) => {
         totalImoveis,
         imoveisDisponiveis,
         imoveisAlugados,
-        totalInquilinos,
+        totalPessoas,
         contratosAtivos,
         contratosVencidos,
         receitaMensalAggregate,
         contratosVencendo,
         ultimosImoveis,
-        ultimosInquilinos,
+        ultimasPessoas,
       ] = await Promise.all([
         // Contagens em paralelo
         prisma.imovel.count(),
         prisma.imovel.count({ where: { status: 'disponivel' } }),
         prisma.imovel.count({ where: { status: 'alugado' } }),
-        prisma.inquilino.count(),
+        prisma.pessoa.count(),
         prisma.contrato.count({ where: { status: 'ativo' } }),
         prisma.contrato.count({ where: { status: 'vencido' } }),
         
@@ -42,7 +42,7 @@ export const getDashboard = async (req, res) => {
                 endereco: true,
               },
             },
-            inquilino: {
+            pessoa: {
               select: {
                 nome: true,
                 telefone: true,
@@ -58,7 +58,7 @@ export const getDashboard = async (req, res) => {
           orderBy: { createdAt: 'desc' },
         }),
         
-        prisma.inquilino.findMany({
+        prisma.pessoa.findMany({
           take: 5,
           orderBy: { createdAt: 'desc' },
         }),
@@ -104,18 +104,18 @@ export const getDashboard = async (req, res) => {
           totalImoveis,
           imoveisDisponiveis,
           imoveisAlugados,
-          totalInquilinos,
+          totalPessoas,
           contratosAtivos,
           contratosVencidos,
           receitaMensal,
         },
         contratosVencendo: contratosVencendoFiltrados,
         ultimosImoveis,
-        ultimosInquilinos,
+        ultimasPessoas,
       });
     } else {
       // ✅ OTIMIZADO: Dashboard do inquilino
-      const inquilino = await prisma.inquilino.findFirst({
+      const pessoa = await prisma.pessoa.findFirst({
         where: { usuarioId: req.user.id },
         include: {
           contratos: {
@@ -128,11 +128,11 @@ export const getDashboard = async (req, res) => {
         },
       });
 
-      if (!inquilino) {
-        return res.status(404).json({ error: 'Inquilino não encontrado' });
+      if (!pessoa) {
+        return res.status(404).json({ error: 'Pessoa não encontrada' });
       }
 
-      const contratoAtivo = inquilino.contratos[0] || null;
+      const contratoAtivo = pessoa.contratos[0] || null;
 
       let diasAteVencimento = null;
       if (contratoAtivo) {
@@ -150,12 +150,12 @@ export const getDashboard = async (req, res) => {
       }
 
       return res.status(200).json({
-        inquilino: {
-          nome: inquilino.nome,
-          cpf: inquilino.cpf,
-          telefone: inquilino.telefone,
-          email: inquilino.email,
-          endereco: inquilino.endereco,
+        pessoa: {
+          nome: pessoa.nome,
+          cpf: pessoa.cpf,
+          telefone: pessoa.telefone,
+          email: pessoa.email,
+          endereco: pessoa.endereco,
         },
         contratoAtivo,
         diasAteVencimento,
