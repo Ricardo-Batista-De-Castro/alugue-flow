@@ -7,12 +7,15 @@ import FilterPanel, { FilterField } from '../../components/FilterPanel';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Pagination';
 import { useImoveis, useCreateImovel, useUpdateImovel, useDeleteImovel } from './useImoveis';
+import { useToast } from '../../context/ToastContext.jsx';
 
 const Imoveis = () => {
   const { data: imoveis = [], isLoading, error } = useImoveis();
   const createImovel = useCreateImovel();
   const updateImovel = useUpdateImovel();
   const deleteImovel = useDeleteImovel();
+
+  const toast = useToast();
 
   const emptyForm = { nome:'', endereco:'', numero:'', complemento:'', bairro:'', cidade:'', estado:'', cep:'', tipo:'apartamento', quartos:'', banheiros:'', area:'', valorAluguel:'', status:'disponivel', observacoes:'' };
 
@@ -29,7 +32,7 @@ const Imoveis = () => {
   const [isClearing, setIsClearing] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
 
-  const temContrato = (im) => im?.contratos && im.contratos.length > 0;
+  const temContratoAtivo = (im) => im?.contratos?.some((c) => c.status === 'ativo');
   const isPending = createImovel.isPending || updateImovel.isPending;
 
   const openModal = (imovel = null, viewMode = false) => {
@@ -49,7 +52,7 @@ const Imoveis = () => {
       banheiros: imovel.banheiros || '',
       area: imovel.area || '',
       valorAluguel: imovel.valorAluguel || '',
-      status: imovel.status || 'disponivel',
+      status: temContratoAtivo(imovel) ? 'alugado' : 'disponivel',
       observacoes: imovel.observacoes || ''
     } : emptyForm);
     setShowModal(true);
@@ -59,16 +62,29 @@ const Imoveis = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const { status, ...data } = formData; // status é indicativo (derivado de contrato ativo)
     try {
-      if (editingImovel) await updateImovel.mutateAsync({ id: editingImovel.id, data: formData });
-      else await createImovel.mutateAsync(formData);
+      if (editingImovel) {
+        await updateImovel.mutateAsync({ id: editingImovel.id, data });
+        toast.success('Imóvel atualizado', 'Alterações salvas com sucesso.');
+      } else {
+        await createImovel.mutateAsync(data);
+        toast.success('Imóvel cadastrado', 'Registro salvo com sucesso.');
+      }
       closeModal();
-    } catch { alert('Erro ao salvar imóvel'); }
+    } catch {
+      toast.error('Erro ao salvar imóvel', 'Tente novamente.');
+    }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Deseja realmente excluir este imóvel?')) return;
-    try { await deleteImovel.mutateAsync(id); } catch { alert('Erro ao excluir imóvel'); }
+    try {
+      await deleteImovel.mutateAsync(id);
+      toast.success('Imóvel excluído', 'Registro removido com sucesso.');
+    } catch {
+      toast.error('Erro ao excluir imóvel', 'Tente novamente.');
+    }
   };
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -218,10 +234,11 @@ const Imoveis = () => {
           onRowClick={setSelectedRow}
           emptyMessage="Nenhum imóvel encontrado."
           onNew={() => openModal()}
-          onEdit={() => selectedRow && openModal(selectedRow)}
+          onEdit={() => selectedRow && openModal(selectedRow, temContratoAtivo(selectedRow))}
           onDelete={() => selectedRow && handleDelete(selectedRow.id)}
+          editLabel={selectedRow && temContratoAtivo(selectedRow) ? 'Visualizar' : 'Editar'}
           editDisabled={!selectedRow}
-          deleteDisabled={!selectedRow || temContrato(selectedRow)}
+          deleteDisabled={!selectedRow || temContratoAtivo(selectedRow)}
           pagination={{
             currentPage,
             totalPages,
@@ -254,9 +271,19 @@ const Imoveis = () => {
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-primary-700">{im.valorAluguel ? fmtCurrency(im.valorAluguel) : '-'}</span>
                 <div className="flex gap-2">
-                  <button onClick={() => openModal(im, true)} className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50">Ver</button>
-                  <button onClick={() => openModal(im)} className="text-xs px-2 py-1 rounded border border-primary-600 text-primary-700 hover:bg-primary-50">Editar</button>
-                  <button onClick={() => handleDelete(im.id)} disabled={temContrato(im)} className="text-xs px-2 py-1 rounded border border-red-400 text-red-600 hover:bg-red-50 disabled:opacity-40">Excluir</button>
+                  <button
+                    onClick={() => openModal(im, temContratoAtivo(im))}
+                    className="btn-secondary !py-1.5 !px-3 !text-xs flex-1"
+                  >
+                    {temContratoAtivo(im) ? 'Visualizar' : 'Editar'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(im.id)}
+                    disabled={temContratoAtivo(im)}
+                    className="btn-danger !py-1.5 !px-3 !text-xs flex-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Excluir
+                  </button>
                 </div>
               </div>
             </div>

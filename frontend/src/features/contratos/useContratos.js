@@ -14,7 +14,10 @@ export const useCreateContrato = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data) => api.post('/api/contratos', data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['contratos'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['contratos'] });
+      qc.invalidateQueries({ queryKey: ['imoveis'] });
+    },
   });
 };
 
@@ -22,7 +25,10 @@ export const useUpdateContrato = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => api.put(`/api/contratos/${id}`, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['contratos'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['contratos'] });
+      qc.invalidateQueries({ queryKey: ['imoveis'] });
+    },
   });
 };
 
@@ -30,6 +36,9 @@ export const useDeleteContrato = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id) => api.delete(`/api/contratos/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['contratos'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['contratos'] });
+      qc.invalidateQueries({ queryKey: ['imoveis'] });
+    },
   });
 };

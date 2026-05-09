@@ -14,6 +14,9 @@ const DataTable = ({
   onNew,
   onEdit,
   onDelete,
+  newLabel,
+  editLabel,
+  deleteLabel,
   editDisabled = false,
   deleteDisabled = false,
   children
@@ -91,6 +94,9 @@ const DataTable = ({
               onNew={onNew}
               onEdit={onEdit}
               onDelete={onDelete}
+              newLabel={newLabel}
+              editLabel={editLabel}
+              deleteLabel={deleteLabel}
               editDisabled={editDisabled}
               deleteDisabled={deleteDisabled}
             />

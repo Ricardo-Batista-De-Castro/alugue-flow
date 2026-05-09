@@ -7,11 +7,14 @@ import FilterPanel, { FilterField } from '../../components/FilterPanel';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Pagination';
 import { usePessoas, useCreatePessoa, useUpdatePessoa } from './usePessoas';
+import { useToast } from '../../context/ToastContext.jsx';
 
 const Pessoas = () => {
   const { data: pessoas = [], isLoading, error } = usePessoas();
   const createPessoa = useCreatePessoa();
   const updatePessoa = useUpdatePessoa();
+
+  const toast = useToast();
 
   const emptyForm = { nome: '', email: '', telefone: '', cpf: '', rg: '', profissao: '', situacao: 'EM_CADASTRO', rendaMensal: '', acessoDashboard: false };
 
@@ -50,10 +53,17 @@ const Pessoas = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingPessoa) await updatePessoa.mutateAsync({ id: editingPessoa.id, data: formData });
-      else await createPessoa.mutateAsync(formData);
+      if (editingPessoa) {
+        await updatePessoa.mutateAsync({ id: editingPessoa.id, data: formData });
+        toast.success('Pessoa atualizada', 'Alterações salvas com sucesso.');
+      } else {
+        await createPessoa.mutateAsync(formData);
+        toast.success('Pessoa cadastrada', 'Registro salvo com sucesso.');
+      }
       closeModal();
-    } catch { alert('Erro ao salvar pessoa'); }
+    } catch {
+      toast.error('Erro ao salvar pessoa', 'Tente novamente.');
+    }
   };
 
   const handleChange = (e) => {
@@ -257,10 +267,9 @@ const Pessoas = () => {
 
         {/* Cards mobile */}
         <div className="md:hidden space-y-4">
-          <button onClick={() => openModal()} className="btn-primary w-full mb-2">Nova Pessoa</button>
           {filtered.length === 0 ? (
             <p className="text-center text-gray-500 py-8">Nenhuma pessoa encontrada.</p>
-          ) : filtered.map(p => (
+          ) : filtered.map((p) => (
             <div key={p.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-gray-800">{p.nome}</h3>
@@ -273,13 +282,17 @@ const Pessoas = () => {
               <p className="text-sm text-gray-600">Renda: {fmtCurrency(p.rendaMensal)}</p>
               {p.acessoDashboard && (
                 <p className="text-sm text-gray-600">
-                  Dashboard: 
+                  Dashboard:
                   <span className="ml-1 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                     Sim
                   </span>
                 </p>
               )}
-              <button onClick={() => openModal(p)} className="btn-secondary w-full mt-3 text-sm">Editar</button>
+              <div className="flex justify-end mt-3">
+                <button onClick={() => openModal(p)} className="btn-secondary !py-1.5 !px-3 !text-xs">
+                  Editar
+                </button>
+              </div>
             </div>
           ))}
         </div>

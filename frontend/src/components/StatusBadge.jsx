@@ -5,12 +5,9 @@ const StatusBadge = ({
 }) => {
   // Mapa de cores padrão
   const defaultColorMap = {
-    // Status de Pessoas
+    // Status de Pessoas e Contratos
     'Ativo': 'green',
     'Inativo': 'red',
-    
-    // Status de Contratos
-    'Ativo': 'green',
     'Encerrado': 'red',
     'Pendente': 'yellow',
     

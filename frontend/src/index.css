@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Toast progress bar animation */
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+.toast-progress {
+  transform-origin: left center;
+  animation: toast-progress var(--toast-duration, 4000ms) linear forwards;
+}
+
 * {
   margin: 0;
   padding: 0;

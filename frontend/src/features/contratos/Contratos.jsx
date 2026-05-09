@@ -7,12 +7,15 @@ import FilterPanel, { FilterField } from '../../components/FilterPanel';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Pagination';
 import { useContratos, useCreateContrato, useUpdateContrato, useDeleteContrato } from './useContratos';
+import { useToast } from '../../context/ToastContext.jsx';
 
 const Contratos = () => {
   const { data: contratos = [], isLoading, error } = useContratos();
   const createContrato = useCreateContrato();
   const updateContrato = useUpdateContrato();
   const deleteContrato = useDeleteContrato();
+
+  const toast = useToast();
 
   const emptyForm = { imovelId: '', pessoaId: '', dataInicio: '', dataFim: '', valorAluguel: '', diaVencimento: '', observacoes: '', status: 'ativo' };
 
@@ -50,10 +53,17 @@ const Contratos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingContrato) await updateContrato.mutateAsync({ id: editingContrato.id, data: formData });
-      else await createContrato.mutateAsync(formData);
+      if (editingContrato) {
+        await updateContrato.mutateAsync({ id: editingContrato.id, data: formData });
+        toast.success('Contrato atualizado', 'Alterações salvas com sucesso.');
+      } else {
+        await createContrato.mutateAsync(formData);
+        toast.success('Contrato cadastrado', 'Registro salvo com sucesso.');
+      }
       closeModal();
-    } catch { alert('Erro ao salvar contrato'); }
+    } catch {
+      toast.error('Erro ao salvar contrato', 'Tente novamente.');
+    }
   };
 
   const handleDelete = async () => {
@@ -61,7 +71,10 @@ const Contratos = () => {
     try {
       await deleteContrato.mutateAsync(selectedRow.id);
       setSelectedRow(null);
-    } catch { alert('Erro ao excluir contrato'); }
+      toast.success('Contrato excluído', 'Registro removido com sucesso.');
+    } catch {
+      toast.error('Erro ao excluir contrato', 'Tente novamente.');
+    }
   };
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -234,10 +247,9 @@ const Contratos = () => {
         />
 
         <div className="md:hidden space-y-4">
-          <button onClick={() => openModal()} className="btn-primary w-full mb-2">Novo Contrato</button>
           {filtered.length === 0 ? (
             <p className="text-center text-gray-500 py-8">Nenhum contrato encontrado.</p>
-          ) : filtered.map(c => (
+          ) : filtered.map((c) => (
             <div key={c.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-gray-800">{c.pessoa.nome}</h3>
@@ -248,9 +260,13 @@ const Contratos = () => {
               <p className="text-sm text-gray-600 mt-2">Período: {fmtDate(c.dataInicio)} a {fmtDate(c.dataFim)}</p>
               <p className="text-sm text-gray-600">Valor: {fmtCurrency(c.valorAluguel)}</p>
               <p className="text-sm text-gray-600">Vencimento: Dia {c.diaVencimento}</p>
-              <div className="flex gap-2 mt-3">
-                <button onClick={() => openModal(c)} className="btn-secondary flex-1 text-sm">Editar</button>
-                <button onClick={() => { setSelectedRow(c); handleDelete(); }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm">Excluir</button>
+              <div className="flex justify-end gap-2 mt-3">
+                <button onClick={() => openModal(c)} className="btn-secondary !py-1.5 !px-3 !text-xs">
+                  Editar
+                </button>
+                <button onClick={() => { setSelectedRow(c); handleDelete(); }} className="btn-danger !py-1.5 !px-3 !text-xs">
+                  Excluir
+                </button>
               </div>
             </div>
           ))}
