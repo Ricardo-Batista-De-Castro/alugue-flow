@@ -12,6 +12,24 @@ const ContratosModal = ({ editingContrato, formData, onChange, onClose, onSubmit
 
   const formId = 'contratos-form';
 
+  const handleImovelChange = (e) => {
+    // Sempre atualiza o imovelId
+    onChange(e);
+
+    // Ao selecionar um imóvel, autopreenche o valor do aluguel a partir do cadastro do imóvel
+    const selectedId = e.target.value;
+    const imovel = imoveis.find((i) => i.id === selectedId);
+
+    if (imovel?.valorAluguel != null && imovel.valorAluguel !== '') {
+      onChange({
+        target: {
+          name: 'valorAluguel',
+          value: String(imovel.valorAluguel),
+        },
+      });
+    }
+  };
+
   const footer = (
     <ModalFooter
       onCancel={onClose}
@@ -38,7 +56,7 @@ const ContratosModal = ({ editingContrato, formData, onChange, onClose, onSubmit
             <select
               name="imovelId"
               value={formData.imovelId}
-              onChange={onChange}
+              onChange={handleImovelChange}
               className="input-field"
               required
             >

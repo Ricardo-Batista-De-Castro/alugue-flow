@@ -77,7 +77,10 @@ const Contratos = () => {
     }
   };
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
   const handleFilterChange = (e) => setFilters({ ...filters, [e.target.name]: e.target.value });
 
   const handleSearch = () => {
@@ -194,6 +197,7 @@ const Contratos = () => {
         {/* Tabela Desktop */}
         <DataTable
           columns={[
+            { header: 'Cód. Contrato', accessor: 'codigo' },
             { 
               header: 'Imóvel', 
               accessor: 'imovel', 

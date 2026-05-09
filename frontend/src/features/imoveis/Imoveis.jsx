@@ -210,6 +210,7 @@ const Imoveis = () => {
         {/* Tabela Desktop */}
         <DataTable
           columns={[
+            { header: 'Cód. Imóvel', accessor: 'codigo' },
             { header: 'Nome', accessor: 'nome', render: (im) => im.nome || '-' },
             { header: 'Endereço', accessor: 'endereco', render: (im) => `${im.endereco}${im.numero ? `, ${im.numero}` : ''}` },
             { header: 'Cidade', accessor: 'cidade' },

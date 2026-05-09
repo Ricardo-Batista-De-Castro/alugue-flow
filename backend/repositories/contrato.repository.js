@@ -19,6 +19,7 @@ class ContratoRepository {
         imovel: {
           select: {
             id: true,
+            codigo: true,
             nome: true,
             endereco: true,
             numero: true,
@@ -30,6 +31,7 @@ class ContratoRepository {
         pessoa: {
           select: {
             id: true,
+            codigo: true,
             nome: true,
             cpf: true,
             telefone: true,

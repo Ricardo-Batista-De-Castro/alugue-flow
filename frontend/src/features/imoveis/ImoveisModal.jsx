@@ -31,9 +31,6 @@ const ImoveisModal = ({ show, onClose, formData, onChange, onSubmit, editingImov
         <div className="space-y-6">
           {/* Identificação */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 pb-1 border-b border-gray-200">
-              Identificação
-            </h3>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div className="md:col-span-8">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Imóvel</label>
@@ -69,9 +66,6 @@ const ImoveisModal = ({ show, onClose, formData, onChange, onSubmit, editingImov
 
           {/* Endereço */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 pb-1 border-b border-gray-200">
-              Endereço
-            </h3>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div className="md:col-span-8">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Logradouro *</label>
@@ -167,9 +161,6 @@ const ImoveisModal = ({ show, onClose, formData, onChange, onSubmit, editingImov
 
           {/* Características */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 pb-1 border-b border-gray-200">
-              Características
-            </h3>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div className="md:col-span-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Quartos</label>
@@ -241,9 +232,6 @@ const ImoveisModal = ({ show, onClose, formData, onChange, onSubmit, editingImov
 
           {/* Observações */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 pb-1 border-b border-gray-200">
-              Observações
-            </h3>
             <textarea
               name="observacoes"
               value={formData.observacoes}

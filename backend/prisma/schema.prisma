@@ -21,6 +21,7 @@ model Usuario {
 
 model Imovel {
   id          String   @id @default(uuid())
+  codigo      Int      @unique @default(autoincrement())
   nome        String
   endereco    String
   numero      String
@@ -48,6 +49,7 @@ model Imovel {
 
 model Pessoa {
   id               String    @id @default(uuid())
+  codigo           Int       @unique @default(autoincrement())
   nome             String
   cpf              String    @unique
   rg               String?
@@ -69,6 +71,7 @@ model Pessoa {
 
 model Contrato {
   id             String   @id @default(uuid())
+  codigo         Int      @unique @default(autoincrement())
   dataInicio     DateTime
   dataFim        DateTime
   valorAluguel   Float

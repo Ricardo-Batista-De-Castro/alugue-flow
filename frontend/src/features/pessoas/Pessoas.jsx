@@ -213,6 +213,7 @@ const Pessoas = () => {
         {/* Tabela Desktop */}
         <DataTable
           columns={[
+            { header: 'Cód. Pessoa', accessor: 'codigo' },
             { header: 'Nome', accessor: 'nome', className: 'font-medium' },
             { header: 'Email', accessor: 'email' },
             { header: 'Telefone', accessor: 'telefone' },
