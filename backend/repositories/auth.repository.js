@@ -24,6 +24,28 @@ class AuthRepository {
   }
 
   /**
+   * Busca pessoa por email
+   */
+  async findPessoaByEmail(email) {
+    return await prisma.pessoa.findFirst({
+      where: { email },
+    });
+  }
+
+  /**
+   * Verifica se pessoa tem contrato ativo
+   */
+  async verificarContratoAtivo(pessoaId) {
+    const contrato = await prisma.contrato.findFirst({
+      where: {
+        pessoaId,
+        status: 'ativo',
+      },
+    });
+    return !!contrato;
+  }
+
+  /**
    * Cria novo usuário (apenas proprietário)
    */
   async createUsuario(data) {
@@ -39,35 +61,9 @@ class AuthRepository {
     });
   }
 
-  /**
-   * Cria usuário + pessoa em transação (inquilino)
-   */
-  async createUsuarioComPessoa(usuarioData, pessoaData) {
-    return await prisma.$transaction(async (tx) => {
-      const novoUsuario = await tx.usuario.create({
-        data: usuarioData,
-        select: {
-          id: true,
-          nome: true,
-          email: true,
-          tipo: true,
-          createdAt: true,
-        },
-      });
-
-      await tx.pessoa.create({
-        data: {
-          ...pessoaData,
-          usuarioId: novoUsuario.id,
-        },
-      });
-
-      return novoUsuario;
-    });
-  }
 
   /**
-   * Busca usuário por ID com dados da pessoa (se existir)
+   * Busca usuário por ID
    */
   async findUsuarioById(id) {
     return await prisma.usuario.findUnique({
@@ -78,14 +74,23 @@ class AuthRepository {
         email: true,
         tipo: true,
         createdAt: true,
-        pessoa: {
-          select: {
-            id: true,
-            cpf: true,
-            telefone: true,
-            email: true,
-          },
-        },
+      },
+    });
+  }
+
+  /**
+   * Busca pessoa (locatário) por ID
+   */
+  async findPessoaById(id) {
+    return await prisma.pessoa.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        cpf: true,
+        acessoDashboard: true,
+        createdAt: true,
       },
     });
   }

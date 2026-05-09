@@ -7,10 +7,14 @@ import prisma from '../config/database.js';
  */
 class ContratoService {
   /**
-   * Busca todos os contratos com filtro opcional de status
+   * Busca todos os contratos com filtro opcional de status e pessoaId
    */
-  async getAllContratos(status) {
-    return await contratoRepository.findAll({ status });
+  async getAllContratos(status, filtros = {}) {
+    const where = {};
+    if (status) where.status = status;
+    if (filtros.pessoaId) where.pessoaId = filtros.pessoaId;
+    
+    return await contratoRepository.findAll(where);
   }
 
   /**
@@ -123,14 +127,22 @@ class ContratoService {
       this._validateDates(updateData.dataInicio, updateData.dataFim);
     }
 
-    // Verificar se deve liberar o imóvel
+    // Verificar se deve liberar o imóvel (ativo → inativo)
     const shouldFreeImovel = status && status !== 'ativo' && contratoExistente.status === 'ativo';
+
+    // Verificar se deve ocupar o imóvel (inativo → ativo)
+    const shouldOccupyImovel = status && status === 'ativo' && contratoExistente.status !== 'ativo';
+
+    // Determinar novo status do imóvel
+    let imovelStatus = null;
+    if (shouldFreeImovel) imovelStatus = 'disponivel';
+    if (shouldOccupyImovel) imovelStatus = 'alugado';
 
     // Atualizar contrato e status do imóvel se necessário
     const contrato = await contratoRepository.updateWithImovelStatus(
       id,
       updateData,
-      shouldFreeImovel,
+      imovelStatus,
       contratoExistente.imovelId
     );
 

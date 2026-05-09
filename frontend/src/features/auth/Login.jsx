@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import logo from '../assets/logo_AlugueFlow.png';
+import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo_AlugueFlow.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [isLocatario, setIsLocatario] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginLocatario } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,15 +17,23 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    const result = await login(email, senha);
-
-    if (result.success) {
-      if (result.user.tipo === 'proprietario') {
-        navigate('/dashboard/proprietario');
-      } else {
-        navigate('/dashboard/inquilino');
+    let result;
+    
+    if (isLocatario) {
+      // Login como locatário (email + CPF)
+      result = await loginLocatario(email, senha);
+      if (result.success) {
+        navigate('/dashboard/locatario');
       }
     } else {
+      // Login como proprietário (email + senha)
+      result = await login(email, senha);
+      if (result.success) {
+        navigate('/dashboard/proprietario');
+      }
+    }
+
+    if (!result.success) {
       setError(result.error);
     }
 
@@ -67,19 +76,36 @@ const Login = () => {
               />
             </div>
 
-            <div className="mb-5">
+            <div className="mb-4">
               <label htmlFor="senha" className="block text-gray-700 font-medium mb-1.5">
-                Senha
+                {isLocatario ? 'CPF' : 'Senha'}
               </label>
               <input
-                type="password"
+                type={isLocatario ? 'text' : 'password'}
                 id="senha"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="input-field"
-                placeholder="••••••••"
+                placeholder={isLocatario ? 'Digite seu CPF (apenas números)' : '••••••••'}
                 required
               />
+            </div>
+
+            <div className="mb-5">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isLocatario}
+                  onChange={(e) => {
+                    setIsLocatario(e.target.checked);
+                    setSenha(''); // Limpa o campo ao trocar
+                  }}
+                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                />
+                <span className="ml-2 text-sm text-gray-700">
+                  Sou locatário
+                </span>
+              </label>
             </div>
 
             <button

@@ -34,11 +34,11 @@ class DashboardService {
   }
 
   /**
-   * Busca dados do dashboard do inquilino
+   * Busca dados do dashboard do locatário
    * @throws {Error} Se pessoa não encontrada
    */
-  async getDashboardInquilino(usuarioId) {
-    const pessoa = await dashboardRepository.getInquilinoData(usuarioId);
+  async getDashboardLocatario(pessoaId) {
+    const pessoa = await dashboardRepository.getLocatarioData(pessoaId);
 
     if (!pessoa) {
       const error = new Error('Pessoa não encontrada');

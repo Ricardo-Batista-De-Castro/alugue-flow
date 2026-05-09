@@ -8,7 +8,14 @@ import contratoService from '../services/contrato.service.js';
 export const getContratos = async (req, res) => {
   try {
     const { status } = req.query;
-    const contratos = await contratoService.getAllContratos(status);
+    
+    // Se for locatário, filtrar apenas seus contratos
+    const filtros = {};
+    if (req.user.tipo === 'locatario') {
+      filtros.pessoaId = req.user.pessoaId;
+    }
+    
+    const contratos = await contratoService.getAllContratos(status, filtros);
     return res.status(200).json(contratos);
   } catch (error) {
     console.error('Erro ao buscar contratos:', error);
@@ -21,6 +28,12 @@ export const getContratoById = async (req, res) => {
   try {
     const { id } = req.params;
     const contrato = await contratoService.getContratoById(id);
+    
+    // Validar acesso de locatário
+    if (req.user.tipo === 'locatario' && contrato.pessoaId !== req.user.pessoaId) {
+      return res.status(403).json({ error: 'Acesso negado a este contrato' });
+    }
+    
     return res.status(200).json(contrato);
   } catch (error) {
     console.error('Erro ao buscar contrato:', error);

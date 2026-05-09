@@ -55,15 +55,3 @@ export const updatePessoa = async (req, res) => {
     return res.status(statusCode).json({ error: error.message });
   }
 };
-
-export const deletePessoa = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pessoaService.deletePessoa(id);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Erro ao excluir pessoa:', error);
-    const statusCode = error.statusCode || 500;
-    return res.status(statusCode).json({ error: error.message });
-  }
-};

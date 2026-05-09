@@ -126,9 +126,9 @@ class ContratoRepository {
   }
 
   /**
-   * Atualiza contrato e libera imóvel se necessário (transação)
+   * Atualiza contrato e atualiza status do imóvel se necessário (transação)
    */
-  async updateWithImovelStatus(id, contratoData, shouldFreeImovel, imovelId) {
+  async updateWithImovelStatus(id, contratoData, imovelStatus, imovelId) {
     return await prisma.$transaction(async (tx) => {
       // Atualizar contrato
       const contratoAtualizado = await tx.contrato.update({
@@ -140,11 +140,11 @@ class ContratoRepository {
         },
       });
 
-      // Se o status mudou para inativo, atualizar o imóvel
-      if (shouldFreeImovel) {
+      // Se houver mudança de status no imóvel, atualizar
+      if (imovelStatus) {
         await tx.imovel.update({
           where: { id: imovelId },
-          data: { status: 'disponivel' },
+          data: { status: imovelStatus },
         });
       }
 

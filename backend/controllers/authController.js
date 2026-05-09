@@ -23,7 +23,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, senha } = req.body;
-    const result = await authService.login(email, senha);
+    const result = await authService.loginProprietario(email, senha);
 
     return res.status(200).json({
       message: 'Login realizado com sucesso',
@@ -36,9 +36,41 @@ export const login = async (req, res) => {
   }
 };
 
+export const loginProprietario = async (req, res) => {
+  try {
+    const { email, senha } = req.body;
+    const result = await authService.loginProprietario(email, senha);
+
+    return res.status(200).json({
+      message: 'Login realizado com sucesso',
+      ...result,
+    });
+  } catch (error) {
+    console.error('Erro no login proprietário:', error);
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({ error: error.message });
+  }
+};
+
+export const loginLocatario = async (req, res) => {
+  try {
+    const { email, cpf } = req.body;
+    const result = await authService.loginLocatario(email, cpf);
+
+    return res.status(200).json({
+      message: 'Login realizado com sucesso',
+      ...result,
+    });
+  } catch (error) {
+    console.error('Erro no login locatário:', error);
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({ error: error.message });
+  }
+};
+
 export const me = async (req, res) => {
   try {
-    const usuario = await authService.getUserProfile(req.user.id);
+    const usuario = await authService.getUserProfile(req.user.id, req.user.tipo);
 
     return res.status(200).json(usuario);
   } catch (error) {

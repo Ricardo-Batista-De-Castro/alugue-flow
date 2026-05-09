@@ -130,7 +130,9 @@ class ImovelService {
     if (quartos !== undefined) updateData.quartos = quartos ? parseInt(quartos) : null;
     if (banheiros !== undefined) updateData.banheiros = banheiros ? parseInt(banheiros) : null;
     if (area !== undefined) updateData.area = area ? parseFloat(area) : null;
-    if (status !== undefined) updateData.status = status;
+    // IMPORTANTE: O status do imóvel é gerenciado automaticamente pela lógica de contratos
+    // Não permitir edição manual do status
+    // if (status !== undefined) updateData.status = status;
 
     if (valorAluguel !== undefined) {
       const valorAluguelNum = parseFloat(valorAluguel);

@@ -12,7 +12,7 @@ export const getDashboard = async (req, res) => {
     if (req.user.tipo === 'proprietario') {
       dashboardData = await dashboardService.getDashboardProprietario();
     } else {
-      dashboardData = await dashboardService.getDashboardInquilino(req.user.id);
+      dashboardData = await dashboardService.getDashboardLocatario(req.user.id);
     }
 
     return res.status(200).json(dashboardData);

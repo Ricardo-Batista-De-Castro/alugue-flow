@@ -93,11 +93,11 @@ class DashboardRepository {
   }
 
   /**
-   * Busca dados do inquilino com contrato ativo
+   * Busca dados do locatário com contrato ativo
    */
-  async getInquilinoData(usuarioId) {
+  async getLocatarioData(pessoaId) {
     return await prisma.pessoa.findFirst({
-      where: { usuarioId },
+      where: { id: pessoaId },
       include: {
         contratos: {
           where: { status: 'ativo' },

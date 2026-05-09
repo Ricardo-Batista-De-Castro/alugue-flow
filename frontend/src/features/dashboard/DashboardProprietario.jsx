@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
-import Layout from '../components/Layout';
+import api from '../../services/api';
+import Layout from '../../components/Layout';
 
 const DashboardProprietario = () => {
   const [stats, setStats] = useState(null);
@@ -111,7 +111,7 @@ const DashboardProprietario = () => {
             )}
           </div>
 
-          {/* Contratos Ativos */}
+          {/* Últimos Imóveis */}
           <div className="card">
             <h2 className="text-xl font-bold text-gray-800 mb-4">
               Últimos Imóveis

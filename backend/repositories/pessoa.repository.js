@@ -23,12 +23,6 @@ class PessoaRepository {
           },
         },
       },
-      usuario: {
-        select: {
-          id: true,
-          email: true,
-        },
-      },
     };
 
     return await prisma.pessoa.findMany({
@@ -45,13 +39,6 @@ class PessoaRepository {
       contratos: {
         include: {
           imovel: true,
-        },
-      },
-      usuario: {
-        select: {
-          id: true,
-          email: true,
-          tipo: true,
         },
       },
     };
@@ -71,14 +58,6 @@ class PessoaRepository {
     });
   }
 
-  /**
-   * Busca pessoa por email
-   */
-  async findByEmail(email) {
-    return await prisma.pessoa.findUnique({
-      where: { email },
-    });
-  }
 
   /**
    * Cria uma nova pessoa
@@ -99,63 +78,6 @@ class PessoaRepository {
     });
   }
 
-  /**
-   * Exclui uma pessoa
-   */
-  async delete(id) {
-    return await prisma.pessoa.delete({
-      where: { id },
-    });
-  }
-
-  /**
-   * Verifica se a pessoa tem contratos ativos
-   */
-  async hasActiveContracts(id) {
-    const pessoa = await prisma.pessoa.findUnique({
-      where: { id },
-      include: {
-        contratos: {
-          where: { status: 'ativo' },
-        },
-      },
-    });
-
-    return pessoa ? pessoa.contratos.length > 0 : false;
-  }
-
-  /**
-   * Busca pessoa com contratos ativos (usado no delete)
-   */
-  async findWithActiveContracts(id) {
-    return await prisma.pessoa.findUnique({
-      where: { id },
-      include: {
-        contratos: {
-          where: { status: 'ativo' },
-        },
-      },
-    });
-  }
-
-  /**
-   * Executa operação em transação para excluir pessoa e usuário
-   */
-  async deleteWithUser(pessoaId, usuarioId) {
-    return await prisma.$transaction(async (tx) => {
-      // Se tiver usuário associado, excluir primeiro
-      if (usuarioId) {
-        await tx.usuario.delete({
-          where: { id: usuarioId },
-        });
-      }
-
-      // Excluir pessoa
-      await tx.pessoa.delete({
-        where: { id: pessoaId },
-      });
-    });
-  }
 }
 
 export default new PessoaRepository();

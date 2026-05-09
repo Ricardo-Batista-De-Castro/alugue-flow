@@ -46,6 +46,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginLocatario = async (email, cpf) => {
+    try {
+      const response = await api.post('/api/auth/login/locatario', { email, cpf });
+      const { token, usuario } = response.data;
+      
+      localStorage.setItem('token', token);
+      setToken(token);
+      setUser(usuario);
+      
+      return { success: true, user: usuario };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Erro ao fazer login',
+      };
+    }
+  };
+
   const register = async (userData) => {
     try {
       const response = await api.post('/api/auth/register', userData);
@@ -71,7 +89,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginLocatario, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

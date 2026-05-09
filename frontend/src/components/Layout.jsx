@@ -50,7 +50,7 @@ const Layout = ({ children }) => {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
       </svg>
     ),
-    inquilinos: (
+    locatarios: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
       </svg>
@@ -70,10 +70,10 @@ const Layout = ({ children }) => {
   const menuItems = user?.tipo === 'proprietario' ? [
     { path: '/dashboard/proprietario', label: 'Dashboard', icon: icons.dashboard },
     { path: '/imoveis', label: 'Imóveis', icon: icons.imoveis },
-    { path: '/pessoas', label: 'Pessoas', icon: icons.inquilinos },
+    { path: '/pessoas', label: 'Pessoas', icon: icons.locatarios },
     { path: '/contratos', label: 'Contratos', icon: icons.contratos },
   ] : [
-    { path: '/dashboard/inquilino', label: 'Meu Contrato', icon: icons.meuContrato },
+    { path: '/dashboard/locatario', label: 'Meu Contrato', icon: icons.meuContrato },
   ];
 
   // Auto-collapse ao clicar em item SOMENTE se não estiver pinado
@@ -310,7 +310,7 @@ const Layout = ({ children }) => {
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 p-4 md:p-8 w-full pb-20 ${isPinned ? '' : 'transition-all duration-300'} ${isPinned ? 'md:ml-64' : (isCollapsed ? 'md:ml-16' : 'md:ml-64')}`}>
+        <main className={`flex-1 p-4 md:p-8 w-full pb-20 overflow-x-hidden ${isPinned ? '' : 'transition-all duration-300'} ${isPinned ? 'md:ml-64' : (isCollapsed ? 'md:ml-16' : 'md:ml-64')}`}>
           <div className="w-full">
             {children}
           </div>
@@ -328,7 +328,7 @@ const Layout = ({ children }) => {
 
             {/* Versão à direita */}
             <div className="text-sm absolute right-0">
-              Versão: 1.0.0.0
+              {/* Versão: 1.0.0.0 */}
             </div>
           </div>
         </div>

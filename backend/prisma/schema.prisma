@@ -12,11 +12,9 @@ model Usuario {
   nome      String
   email     String   @unique
   senha     String
-  tipo      String
+  tipo      String   @default("proprietario")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  pessoa Pessoa?
 
   @@map("usuario")
 }
@@ -49,21 +47,20 @@ model Imovel {
 }
 
 model Pessoa {
-  id          String   @id @default(uuid())
-  nome        String
-  cpf         String   @unique
-  rg          String?
-  telefone    String
-  email       String   @unique
-  profissao   String?
-  rendaMensal Float?
-  endereco    String?
-  dataNascimento DateTime? @db.Date 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  usuarioId String?   @unique
-  usuario   Usuario?  @relation(fields: [usuarioId], references: [id])
+  id               String    @id @default(uuid())
+  nome             String
+  cpf              String    @unique
+  rg               String?
+  telefone         String
+  email            String
+  profissao        String?
+  rendaMensal      Float?
+  endereco         String?
+  dataNascimento   DateTime? @db.Date
+  situacao         String    @default("EM_CADASTRO")
+  acessoDashboard  Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   contratos Contrato[]
 
